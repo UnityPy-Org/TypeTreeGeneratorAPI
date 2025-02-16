@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	  <TargetFramework>net9.0</TargetFramework>
+	  <ImplicitUsings>enable</ImplicitUsings>
+	  <Nullable>enable</Nullable>
+	  <PublishAot>true</PublishAot>
+	  <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AssetRipper.Primitives" Version="3.1.3" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-pre-release.19" />
+	<PackageReference Include="System.Text.Json" Version="9.0.2" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\CecilUtils.cs">
+			<Link>Unity.CecilTools\CecilUtils.cs</Link>
+		</Compile>
+		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\ElementType.cs">
+			<Link>Unity.CecilTools\ElementType.cs</Link>
+		</Compile>
+		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\**\*.cs">
+			<Link>Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)</Link>
+		</Compile>
+		<Compile Include="..\UnityCsReference\Tools\Unity.SerializationLogic\UnitySerializationLogic.cs">
+			<Link>Unity.SerializationLogic\UnitySerializationLogic.cs</Link>
+		</Compile>
+		<Compile Include="..\UnityCsReference\Tools\Unity.SerializationLogic\UnityEngineTypePredicates.cs">
+			<Link>Unity.SerializationLogic\UnityEngineTypePredicates.cs</Link>
+		</Compile>
+	</ItemGroup>
+	
+</Project>
