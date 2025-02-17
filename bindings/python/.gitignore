@@ -1,3 +1,5 @@
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .dump
@@ -5,9 +7,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# precompiled C extensions
-UnityPy/*.so
-UnityPy/*.pyd
+# precompiled native extensions
+TypeTreeGeneratorAPI/*.pyd
+TypeTreeGeneratorAPI/*.dll
+TypeTreeGeneratorAPI/*.so
+TypeTreeGeneratorAPI/*.dylib
 
 # Distribution / packaging
 .Python

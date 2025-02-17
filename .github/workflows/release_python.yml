@@ -1,0 +1,181 @@
+name: Build & Publish wheels
+on:
+  workflow_dispatch
+
+
+jobs:
+  build_wheels_win:
+    name: Build wheels on Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+    
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.X
+        
+      - name: Publish
+        run: |
+          dotnet publish -c Release -r win-x86
+          dotnet publish -c Release -r win-x64
+          dotnet publish -c Release -r win-arm64
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build Wheels
+        run: |
+          cd ./bindings/python
+          python -m pip install setuptools
+          python setup.py bdist_wheel -p win32
+          python setup.py bdist_wheel -p win_amd64
+          python setup.py bdist_wheel -p win_arm64
+        
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Windows
+          path: ./bindings/python/dist/*.whl
+          retention-days: 1
+
+  build_wheels_mac:
+    name: Build wheels on MacOS
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+    
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.X
+        
+      - name: Publish
+        run: |
+          dotnet publish -c Release -r osx-x64
+          dotnet publish -c Release -r osx-arm64
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build Wheels
+        run: |
+          cd ./bindings/python
+          python -m pip install setuptools
+          python setup.py bdist_wheel -p macosx_10_0_x86_64
+          python setup.py bdist_wheel -p macosx_10_0_arm64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MacOS
+          path: ./bindings/python/dist/*.whl
+          retention-days: 1
+  
+  build_wheels_linux:
+    name: Build wheels on Ubuntu
+    runs-on: ubuntu-22.04 # oldest ubuntu for compatiblity
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+         
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.X
+        
+      - name: Publish
+        run: |
+          dotnet publish -c Release -r linux-x64
+          dotnet publish -c Release -r linux-musl-x64
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build Wheels
+        run: |
+          cd ./bindings/python
+          python -m pip install setuptools
+          python setup.py bdist_wheel -p manylinux2014_x86_64
+          python setup.py bdist_wheel -p musllinux_2_0_x86_64
+        
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Linux
+          path: ./bindings/python/dist/*.whl
+          retention-days: 1
+
+  build_wheels_linux_arm:
+    name: Build wheels on Ubuntu-Arm
+    runs-on: ubuntu-22.04-arm # oldest ubuntu for compatiblity
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.X
+        
+      - name: Publish Arm64
+        run: |
+          dotnet publish -c Release -r linux-arm64
+          dotnet publish -c Release -r linux-musl-arm64
+      
+      - name: Publish Arm
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt update
+          sudo apt install -y gcc-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libc6-dev:armhf
+          dotnet publish -c Release -r linux-arm   
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Build Wheels
+        run: |
+          cd ./bindings/python
+          python -m pip install setuptools
+          python setup.py bdist_wheel -p manylinux2014_aarch64
+          python setup.py bdist_wheel -p manylinux2014_armv7l
+          python setup.py bdist_wheel -p musllinux_2_0_aarch64
+        
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Linux-Arm
+          path: ./bindings/python/dist/*.whl
+          retention-days: 1
+
+  upload_pypi:
+    name: Publish to PyPI
+    needs: [build_wheels_win, build_wheels_mac, build_wheels_linux, build_wheels_linux_arm]
+    runs-on: ubuntu-latest
+
+    permissions:
+        id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true

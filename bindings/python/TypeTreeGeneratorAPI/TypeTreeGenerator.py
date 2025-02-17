@@ -1,7 +1,10 @@
+import os
+import platform
 import ctypes
+from typing import List
 
 
-class TypeTreeNode(ctypes.Structure):
+class TypeTreeNodeNative(ctypes.Structure):
     _pack_ = 4
     _fields_ = [
         ("m_Type", ctypes.c_char_p),
@@ -11,12 +14,41 @@ class TypeTreeNode(ctypes.Structure):
     ]
 
 
-DLL: ctypes.CDLL
+class TypeTreeNode:
+    m_Type: str
+    m_Name: str
+    m_Level: int
+    m_MetaFlag: int
+
+    def __init__(self, m_Type: str, m_Name: str, m_Level: int, m_MetaFlag: int):
+        self.m_Type = m_Type
+        self.m_Name = m_Name
+        self.m_Level = m_Level
+        self.m_MetaFlag = m_MetaFlag
 
 
-def init_dll(fp: str):
+DLL: ctypes.CDLL = None  # type: ignore
+
+
+def init_dll():
     global DLL
-    dll = ctypes.WinDLL(fp)
+    if DLL is not None:  # type: ignore
+        return
+
+    system = platform.system()
+    LOCAL = os.path.dirname(os.path.realpath(__file__))
+    if system == "Windows":
+        fp = os.path.join(LOCAL, "TypeTreeGeneratorAPI.dll")
+        dll = ctypes.WinDLL(fp)
+    elif system == "Linux":
+        fp = os.path.join(LOCAL, "TypeTreeGeneratorAPI.so")
+        dll = ctypes.CDLL(fp)
+    elif system == "Darwin":
+        fp = os.path.join(LOCAL, "TypeTreeGeneratorAPI.dylib")
+        dll = ctypes.CDLL(fp)
+    else:
+        raise NotImplementedError(f"TypeTreeGenerator doesn't support {system}!")
+
     # set function types
     dll.TypeTreeGenerator_init.argtypes = [ctypes.c_char_p]
     dll.TypeTreeGenerator_init.restype = ctypes.c_void_p
@@ -43,7 +75,7 @@ def init_dll(fp: str):
         ctypes.c_void_p,
         ctypes.c_char_p,
         ctypes.c_char_p,
-        ctypes.POINTER(ctypes.POINTER(TypeTreeNode)),
+        ctypes.POINTER(ctypes.POINTER(TypeTreeNodeNative)),
         ctypes.POINTER(ctypes.c_int),
     ]
     dll.TypeTreeGenerator_del.argtypes = [ctypes.c_void_p]
@@ -54,14 +86,8 @@ def init_dll(fp: str):
 class TypeTreeGenerator:
     ptr = ctypes.c_void_p
 
-    @staticmethod
-    def load_generator_dll(fp: str):
-        init_dll(fp)
-
     def __init__(self, unity_version: str):
-        assert (
-            DLL is not None
-        ), "TypeTreeGenerator DLL wasn't loaded yet via the static method TypeTreeGenerator.load_generator_dll(fp)!"
+        init_dll()
         self.ptr = DLL.TypeTreeGenerator_init(unity_version.encode("ascii"))
 
     def __del__(self):
@@ -95,8 +121,8 @@ class TypeTreeGenerator:
         DLL.FreeCoTaskMem(jsonPtr)
         return json_str
 
-    def get_nodes_as_dict(self, assembly: str, fullname: str) -> dict:
-        nodes_ptr = ctypes.POINTER(TypeTreeNode)()
+    def get_nodes(self, assembly: str, fullname: str) -> List[TypeTreeNode]:
+        nodes_ptr = ctypes.POINTER(TypeTreeNodeNative)()
         nodes_count = ctypes.c_int()
         assert not DLL.TypeTreeGenerator_generateTreeNodesJson(
             assembly.encode("ascii"),
@@ -105,19 +131,19 @@ class TypeTreeGenerator:
             ctypes.byref(nodes_count),
         ), "failed to dump nodes raw"
         nodes_array = ctypes.cast(
-            nodes_ptr, ctypes.POINTER(TypeTreeNode * nodes_count.value)
+            nodes_ptr, ctypes.POINTER(TypeTreeNodeNative * nodes_count.value)
         ).contents
         nodes = [
-            {
-                "m_Type": node.m_Type.decode("ascii"),
-                "m_Name": node.m_Name.decode("ascii"),
-                "m_Level": node.m_Level,
-                "m_MetaFlag": node.m_MetaFlag,
-            }
+            TypeTreeNode(
+                m_Type=node.m_Type.decode("ascii"),
+                m_Name=node.m_Name.decode("ascii"),
+                m_Level=node.m_Level,
+                m_MetaFlag=node.m_MetaFlag,
+            )
             for node in nodes_array
         ]
         DLL.FreeCoTaskMem(nodes_ptr)
         return nodes
 
 
-__all__ = [TypeTreeGenerator]  # type: ignore
+__all__ = ("TypeTreeGenerator", "TypeTreeNode", "TypeTreeNodeNative")

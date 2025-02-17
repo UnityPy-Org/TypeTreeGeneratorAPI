@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "TypeTreeGeneratorAPI"
+authors = [{ name = "Rudolf Kolbe", email = "rkolbe96@gmail.com" }]
+description = "A Unity extraction and patching package"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.7"
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = { attr = "TypeTreeGeneratorAPI.__version__" }
+
+[tool.setuptools.package-data]
+TypeTreeGeneratorAPI = ["*.dll", "*.so", "*.dylib"]
+
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64", "armv7l"]
+
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64", "x86", "ARM64"]

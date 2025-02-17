@@ -1,7 +1,4 @@
-﻿using AssetStudio;
-using System.Drawing;
-using System.IO;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace TypeTreeGeneratorAPI
 {
@@ -18,7 +15,7 @@ namespace TypeTreeGeneratorAPI
             try
             {
                 var typeTreeGenerator = new TypeTreeGenerator(unityVersion);
-                return (IntPtr)GCHandle.Alloc(typeTreeGenerator);
+                return GCHandle.ToIntPtr(GCHandle.Alloc(typeTreeGenerator));
             }
             catch
             {
@@ -27,7 +24,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_loadDLL")]
-        unsafe public static int TypeTreeGenerator_loadDLL(IntPtr typeTreeGeneratorPtr, IntPtr dllPtr, int dllLength)
+        unsafe public static int TypeTreeGenerator_loadDLL(IntPtr typeTreeGeneratorPtr, byte* dllPtr, int dllLength)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -36,7 +33,7 @@ namespace TypeTreeGeneratorAPI
             try
             {
                 var typeTreeGenerator = (TypeTreeGenerator)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
-                using (var stream = new UnmanagedMemoryStream((byte*)dllPtr, dllLength, dllLength, FileAccess.ReadWrite))
+                using (var stream = new UnmanagedMemoryStream(dllPtr, dllLength, dllLength, FileAccess.ReadWrite))
                 {
                     if (stream == null)
                     {
@@ -54,7 +51,7 @@ namespace TypeTreeGeneratorAPI
 
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_loadIL2CPP")]
-        unsafe public static int TypeTreeGenerator_loadIL2CPP(IntPtr typeTreeGeneratorPtr, IntPtr assemblyDataPtr, int assemblyDataLength, IntPtr metadataDataPtr, int metadataDataLength)
+        unsafe public static int TypeTreeGenerator_loadIL2CPP(IntPtr typeTreeGeneratorPtr, byte* assemblyDataPtr, int assemblyDataLength, byte* metadataDataPtr, int metadataDataLength)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -68,11 +65,11 @@ namespace TypeTreeGeneratorAPI
 
                 fixed (byte* managedPtr = assemblyData)
                 {
-                    Buffer.MemoryCopy((void*)assemblyDataPtr, managedPtr, assemblyDataLength, assemblyDataLength);
+                    Buffer.MemoryCopy(assemblyDataPtr, managedPtr, assemblyDataLength, assemblyDataLength);
                 }
                 fixed (byte* managedPtr = metadataData)
                 {
-                    Buffer.MemoryCopy((void*)metadataDataPtr, managedPtr, metadataDataLength, metadataDataLength);
+                    Buffer.MemoryCopy(metadataDataPtr, managedPtr, metadataDataLength, metadataDataLength);
                 }
 
                 typeTreeGenerator.LoadIL2CPP(assemblyData, metadataData);
@@ -93,8 +90,9 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
-                GCHandle.FromIntPtr(typeTreeGeneratorPtr).Free();
+                var gch = GCHandle.FromIntPtr(typeTreeGeneratorPtr);
+                //var typeTreeGenerator = (TypeTreeGenerator)gch.Target!;
+                gch.Free();
                 return 0;
             }
             catch
