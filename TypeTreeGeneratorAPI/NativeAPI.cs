@@ -10,7 +10,7 @@ namespace TypeTreeGeneratorAPI
             string? unityVersion = Marshal.PtrToStringUTF8(unityVersionPtr);
             if (unityVersion == null)
             {
-                return 0;
+                return IntPtr.Zero;
             }
             try
             {
@@ -19,7 +19,7 @@ namespace TypeTreeGeneratorAPI
             }
             catch
             {
-                return 0;
+                return IntPtr.Zero;
             }
         }
 
@@ -53,10 +53,11 @@ namespace TypeTreeGeneratorAPI
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_loadIL2CPP")]
         unsafe public static int TypeTreeGenerator_loadIL2CPP(IntPtr typeTreeGeneratorPtr, byte* assemblyDataPtr, int assemblyDataLength, byte* metadataDataPtr, int metadataDataLength)
         {
-            if (typeTreeGeneratorPtr == IntPtr.Zero)
+            if (typeTreeGeneratorPtr == IntPtr.Zero || assemblyDataPtr == null || metadataDataPtr == null)
             {
                 return -1;
             }
+
             try
             {
                 var typeTreeGenerator = (TypeTreeGenerator)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
