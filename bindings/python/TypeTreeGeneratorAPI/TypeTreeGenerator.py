@@ -124,7 +124,8 @@ class TypeTreeGenerator:
     def get_nodes(self, assembly: str, fullname: str) -> List[TypeTreeNode]:
         nodes_ptr = ctypes.POINTER(TypeTreeNodeNative)()
         nodes_count = ctypes.c_int()
-        assert not DLL.TypeTreeGenerator_generateTreeNodesJson(
+        assert not DLL.TypeTreeGenerator_generateTreeNodesRaw(
+            self.ptr,
             assembly.encode("ascii"),
             fullname.encode("ascii"),
             ctypes.byref(nodes_ptr),

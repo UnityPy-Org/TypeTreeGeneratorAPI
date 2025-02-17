@@ -4,4 +4,4 @@ from .TypeTreeGenerator import (
     TypeTreeNodeNative as TypeTreeNodeNative,
 )
 
-version = __version__ = "0.0.3"
+version = __version__ = "0.0.4"
