@@ -144,7 +144,7 @@ namespace TypeTreeGeneratorAPI
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesRaw")]
         unsafe public static int TypeTreeGenerator_generateTypeTreeNodesRaw(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
-        {
+        {            
             string? assemblyName = Marshal.PtrToStringUTF8(assemblyNamePtr);
             string? fullName = Marshal.PtrToStringUTF8(fullNamePtr);
 
@@ -154,8 +154,7 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
-
+                var typeTreeGenerator = (TypeTreeGenerator)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;                
                 var typeTreeNodes = typeTreeGenerator.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
@@ -163,10 +162,7 @@ namespace TypeTreeGeneratorAPI
                 }
                 var (arrayPtr, arrayLength) = TypeTreeNodeSerializer.ToRaw(typeTreeNodes!);
 
-                // Write the JSON pointer to the address specified by `jsonAddr`
                 Marshal.WriteIntPtr(arrAddrPtr, arrayPtr);
-
-                // Write the JSON length to the address specified by `jsonLength`
                 Marshal.WriteInt32(arrLengthPtr, arrayLength);
 
                 return 0;
@@ -177,6 +173,39 @@ namespace TypeTreeGeneratorAPI
             }
         }
 
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getMonoBehaviorDefinitions")]
+        unsafe public static int TypeTreeGenerator_getMonoBehaviorDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        {            
+            if (typeTreeGeneratorPtr == IntPtr.Zero )
+            {
+                return -1;
+            }
+            try
+            {
+                var typeTreeGenerator = (TypeTreeGenerator)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+
+                var typeNames = typeTreeGenerator.GetMonoBehaviourDefinitions();
+
+                var arrayLength = typeNames.Count;
+                var arrayPtr = Marshal.AllocCoTaskMem(Marshal.SizeOf<IntPtr>() * arrayLength * 2);                
+                for (int i = 0; i < arrayLength; i++)
+                {
+                    string module = typeNames[i].Module.Name;
+                    string fullName = typeNames[i].FullName;
+                    Marshal.WriteIntPtr(arrayPtr, (i * 2) * Marshal.SizeOf<IntPtr>(), Marshal.StringToCoTaskMemAnsi(module));
+                    Marshal.WriteIntPtr(arrayPtr, (i * 2 + 1) * Marshal.SizeOf<IntPtr>(), Marshal.StringToCoTaskMemAnsi(fullName));
+                }
+            
+                Marshal.WriteIntPtr(arrAddrPtr, arrayPtr);
+                Marshal.WriteInt32(arrLengthPtr, arrayLength);
+
+                return 0;
+            }
+            catch
+            {
+                return -1;
+            }
+        }
         [UnmanagedCallersOnly(EntryPoint = "FreeCoTaskMem")]
         public static void FreeCoTaskMem(IntPtr ptr)
         {
