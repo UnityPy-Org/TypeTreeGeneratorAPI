@@ -1,7 +1,7 @@
 import os
 import platform
 import ctypes
-from typing import List
+from typing import List, Tuple
 
 
 class TypeTreeNodeNative(ctypes.Structure):
@@ -78,6 +78,11 @@ def init_dll():
         ctypes.POINTER(ctypes.POINTER(TypeTreeNodeNative)),
         ctypes.POINTER(ctypes.c_int),
     ]
+    dll.TypeTreeGenerator_getMonoBehaviorDefinitions.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p)),
+        ctypes.POINTER(ctypes.c_int),
+    ]
     dll.TypeTreeGenerator_del.argtypes = [ctypes.c_void_p]
     dll.FreeCoTaskMem.argtypes = [ctypes.c_void_p]
     DLL = dll  # type: ignore
@@ -145,6 +150,21 @@ class TypeTreeGenerator:
         ]
         DLL.FreeCoTaskMem(nodes_ptr)
         return nodes
+
+    def get_monobehavior_definitions(self) -> List[Tuple[str, str]]:
+        names_ptr = ctypes.POINTER(ctypes.c_char_p)()
+        names_cnt = ctypes.c_int()
+        assert not DLL.TypeTreeGenerator_getMonoBehaviorDefinitions(
+            self.ptr,
+            ctypes.byref(names_ptr),
+            ctypes.byref(names_cnt),
+        ), "failed to get module exports"
+        names_array = ctypes.cast(
+            names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value)
+        ).contents
+        names = [name.decode("ascii") for name in names_array]
+        DLL.FreeCoTaskMem(names_ptr)
+        return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
 
 
 __all__ = ("TypeTreeGenerator", "TypeTreeNode", "TypeTreeNodeNative")
