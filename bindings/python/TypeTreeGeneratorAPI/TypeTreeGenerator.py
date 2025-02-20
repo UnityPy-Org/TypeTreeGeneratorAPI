@@ -159,10 +159,13 @@ class TypeTreeGenerator:
             ctypes.byref(names_ptr),
             ctypes.byref(names_cnt),
         ), "failed to get module exports"
-        names_array = ctypes.cast(
+        ptr_array = ctypes.cast(
             names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value)
-        ).contents
-        names = [name.decode("ascii") for name in names_array]
+        )
+        names = [name.decode("utf-8") for name in ptr_array.contents]
+        for ptr in ptr_array:
+            ptr = ctypes.cast(ptr, ctypes.c_void_p).value
+            DLL.FreeCoTaskMem(ptr)
         DLL.FreeCoTaskMem(names_ptr)
         return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
 

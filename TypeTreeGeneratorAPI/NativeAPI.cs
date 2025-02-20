@@ -192,8 +192,8 @@ namespace TypeTreeGeneratorAPI
                 {
                     string module = typeNames[i].Module.Name;
                     string fullName = typeNames[i].FullName;
-                    Marshal.WriteIntPtr(arrayPtr, (i * 2) * Marshal.SizeOf<IntPtr>(), Marshal.StringToCoTaskMemAnsi(module));
-                    Marshal.WriteIntPtr(arrayPtr, (i * 2 + 1) * Marshal.SizeOf<IntPtr>(), Marshal.StringToCoTaskMemAnsi(fullName));
+                    Marshal.WriteIntPtr(arrayPtr, (i * 2) * Marshal.SizeOf<IntPtr>(), Marshal.StringToCoTaskMemUTF8(module));
+                    Marshal.WriteIntPtr(arrayPtr, (i * 2 + 1) * Marshal.SizeOf<IntPtr>(), Marshal.StringToCoTaskMemUTF8(fullName));
                 }
             
                 Marshal.WriteIntPtr(arrAddrPtr, arrayPtr);
