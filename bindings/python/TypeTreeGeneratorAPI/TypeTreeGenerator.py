@@ -100,7 +100,7 @@ class TypeTreeGenerator:
 
     def load_il2cpp(self, il2cpp: bytes, metadata: bytes):
         assert not DLL.TypeTreeGenerator_loadIL2CPP(
-            self.ptr, il2cpp, metadata
+            self.ptr, il2cpp, len(il2cpp), metadata, len(metadata)
         ), "failed to load il2cpp"
 
     def get_nodes_as_json(self, assembly: str, fullname: str) -> str:
