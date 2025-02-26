@@ -104,7 +104,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesJson")]
-        public static int TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr, IntPtr jsonLength)
+        public static int TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr)
         {
             string? assemblyName = Marshal.PtrToStringUTF8(assemblyNamePtr);
             string? fullName = Marshal.PtrToStringUTF8(fullNamePtr);
@@ -123,18 +123,7 @@ namespace TypeTreeGeneratorAPI
                     return -1;
                 }
                 var json = TypeTreeNodeSerializer.ToJson(typeTreeNodes!);
-                var jsonBytes = System.Text.Encoding.UTF8.GetBytes(json);
-
-                // Allocate memory for the JSON string
-                IntPtr jsonPtr = Marshal.AllocCoTaskMem(jsonBytes.Length);
-                Marshal.Copy(jsonBytes, 0, jsonPtr, jsonBytes.Length);
-
-                // Write the JSON pointer to the address specified by `jsonAddr`
-                Marshal.WriteIntPtr(jsonAddr, jsonPtr);
-
-                // Write the JSON length to the address specified by `jsonLength`
-                Marshal.WriteInt32(jsonLength, jsonBytes.Length);
-
+                Marshal.WriteIntPtr(jsonAddr, Marshal.StringToCoTaskMemUTF8(json));
                 return 0;
             }
             catch

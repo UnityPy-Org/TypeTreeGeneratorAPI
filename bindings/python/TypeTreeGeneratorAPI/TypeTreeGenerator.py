@@ -68,8 +68,7 @@ def init_dll():
         ctypes.c_void_p,
         ctypes.c_char_p,
         ctypes.c_char_p,
-        ctypes.c_void_p,
-        ctypes.c_void_p,
+        ctypes.POINTER(ctypes.c_char_p),
     ]
     dll.TypeTreeGenerator_generateTreeNodesRaw.argtypes = [
         ctypes.c_void_p,
@@ -119,19 +118,14 @@ class TypeTreeGenerator:
 
     def get_nodes_as_json(self, assembly: str, fullname: str) -> str:
         jsonPtr = ctypes.c_char_p()
-        jsonLen = ctypes.c_int()
         assert not DLL.TypeTreeGenerator_generateTreeNodesJson(
             self.ptr,
             assembly.encode("ascii"),
             fullname.encode("ascii"),
             ctypes.byref(jsonPtr),
-            ctypes.byref(jsonLen),
         ), "failed to dump nodes as json"
-        data = jsonPtr.value
-        assert data and len(data) != jsonLen.value, (
-            "returned json data has an unexpected length"
-        )
-        json_str = data.decode("utf8")
+        assert jsonPtr.value is not None, "didn't write json to ptr"
+        json_str = jsonPtr.value.decode("utf8")
         DLL.FreeCoTaskMem(jsonPtr)
         return json_str
 
