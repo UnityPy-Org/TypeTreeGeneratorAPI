@@ -1,6 +1,6 @@
+import ctypes
 import os
 import platform
-import ctypes
 from typing import List, Tuple
 
 
@@ -78,11 +78,20 @@ def init_dll():
         ctypes.POINTER(ctypes.POINTER(TypeTreeNodeNative)),
         ctypes.POINTER(ctypes.c_int),
     ]
+    dll.TypeTreeGenerator_freeTreeNodesRaw.argtypes = [
+        ctypes.POINTER(TypeTreeNodeNative),
+        ctypes.c_int,
+    ]
     dll.TypeTreeGenerator_getMonoBehaviorDefinitions.argtypes = [
         ctypes.c_void_p,
         ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p)),
         ctypes.POINTER(ctypes.c_int),
     ]
+    dll.TypeTreeGenerator_freeMonoBehaviorDefinitions.argtypes = [
+        ctypes.POINTER(ctypes.c_char_p),
+        ctypes.c_int,
+    ]
+
     dll.TypeTreeGenerator_del.argtypes = [ctypes.c_void_p]
     dll.FreeCoTaskMem.argtypes = [ctypes.c_void_p]
     DLL = dll  # type: ignore
@@ -99,9 +108,9 @@ class TypeTreeGenerator:
         DLL.TypeTreeGenerator_del(self.ptr)
 
     def load_dll(self, dll: bytes):
-        assert not DLL.TypeTreeGenerator_loadDLL(
-            self.ptr, dll, len(dll)
-        ), "failed to load dll"
+        assert not DLL.TypeTreeGenerator_loadDLL(self.ptr, dll, len(dll)), (
+            "failed to load dll"
+        )
 
     def load_il2cpp(self, il2cpp: bytes, metadata: bytes):
         assert not DLL.TypeTreeGenerator_loadIL2CPP(
@@ -119,9 +128,9 @@ class TypeTreeGenerator:
             ctypes.byref(jsonLen),
         ), "failed to dump nodes as json"
         data = jsonPtr.value
-        assert (
-            data and len(data) != jsonLen.value
-        ), "returned json data has an unexpected length"
+        assert data and len(data) != jsonLen.value, (
+            "returned json data has an unexpected length"
+        )
         json_str = data.decode("utf8")
         DLL.FreeCoTaskMem(jsonPtr)
         return json_str
@@ -148,7 +157,7 @@ class TypeTreeGenerator:
             )
             for node in nodes_array
         ]
-        DLL.FreeCoTaskMem(nodes_ptr)
+        DLL.TypeTreeGenerator_freeTreeNodesRaw(nodes_ptr, nodes_count)
         return nodes
 
     def get_monobehavior_definitions(self) -> List[Tuple[str, str]]:
@@ -163,10 +172,7 @@ class TypeTreeGenerator:
             names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value)
         )
         names = [name.decode("utf-8") for name in ptr_array.contents]
-        for ptr in ptr_array:
-            ptr = ctypes.cast(ptr, ctypes.c_void_p).value
-            DLL.FreeCoTaskMem(ptr)
-        DLL.FreeCoTaskMem(names_ptr)
+        DLL.TypeTreeGenerator_freeMonoBehaviorDefinitions(names_ptr, names_cnt)
         return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
 
 
