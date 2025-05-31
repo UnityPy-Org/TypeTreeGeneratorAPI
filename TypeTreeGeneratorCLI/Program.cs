@@ -7,7 +7,7 @@ if (args.Length < 2)
     return;
 }
 
-var generator = new TypeTreeGenerator(args[0]);
+var generator = new TypeTreeGenerator_AssetStudio(args[0]);
 
 if (args.Length == 2)
 {

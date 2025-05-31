@@ -2,43 +2,38 @@
 using AsmResolver.PE.Builder;
 using AssetRipper.Primitives;
 using AssetStudio;
-using Cpp2IL.Core.OutputFormats;
 using Cpp2IL.Core;
+using Cpp2IL.Core.OutputFormats;
 using Mono.Cecil;
 using System.Diagnostics.CodeAnalysis;
 
 namespace TypeTreeGeneratorAPI
 {
-    public class TypeTreeGenerator
+    abstract public class TypeTreeGenerator
     {
-        private Dictionary<string, ModuleDefinition> moduleDic;
-        private MyAssemblyResolver resolver;
-        private ReaderParameters readerParameters;
-        private string unityVersion;
-        private SerializedTypeHelper serializedTypeHelper;
+        protected readonly string unityVersionString;
+        protected readonly UnityVersion unityVersion;
+        protected readonly MyAssemblyResolver resolver;
+        protected readonly ReaderParameters readerParameters;
 
         public TypeTreeGenerator(string unityVersion)
         {
-            this.unityVersion = unityVersion;
-            moduleDic = new Dictionary<string, ModuleDefinition>();
+            this.unityVersionString = unityVersion;
+            this.unityVersion = UnityVersion.Parse(unityVersionString);
+
             resolver = new MyAssemblyResolver();
-            readerParameters = new ReaderParameters();
-            readerParameters.InMemory = true;
-            readerParameters.ReadWrite = false;
-            readerParameters.AssemblyResolver = resolver;
-
-            var arVersion = UnityVersion.Parse(unityVersion);
-            serializedTypeHelper = new SerializedTypeHelper([arVersion.Major, arVersion.Minor, arVersion.Build, arVersion.TypeNumber]);
-        }
-
-        ~TypeTreeGenerator()
-        {
-            foreach (var pair in moduleDic)
+            readerParameters = new ReaderParameters
             {
-                pair.Value.Dispose();
-            }
-            moduleDic.Clear();
+                InMemory = true,
+                ReadWrite = false,
+                AssemblyResolver = resolver
+            };
         }
+
+
+        abstract public List<Tuple<string, string>> GetMonoBehaviourDefinitions();
+        abstract public List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName);
+        abstract public void LoadDLL(Stream dllStream);
 
         public void LoadDLL(byte[] dll)
         {
@@ -48,19 +43,12 @@ namespace TypeTreeGeneratorAPI
             }
         }
 
-        public void LoadDLL(Stream dllStream)
-        {
-            var assembly = AssemblyDefinition.ReadAssembly(dllStream, readerParameters);
-            resolver.Register(assembly);
-            moduleDic.Add(assembly.MainModule.Name, assembly.MainModule);
-        }
-
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "<Pending>")]
         public void LoadIL2CPP(byte[] assemblyData, byte[] metadataData)
         {
             Cpp2IlApi.Init();
             Cpp2IlApi.ConfigureLib(false);
-            Cpp2IlApi.InitializeLibCpp2Il(assemblyData, metadataData, UnityVersion.Parse(unityVersion), false);
+            Cpp2IlApi.InitializeLibCpp2Il(assemblyData, metadataData, this.unityVersion, false);
 
             var dllGen = new AsmResolverDllOutputFormatEmpty();
 
@@ -80,61 +68,26 @@ namespace TypeTreeGeneratorAPI
             Cpp2IlPluginManager.CallOnFinish();
         }
 
-        public List<TypeDefinition> GetMonoBehaviourDefinitions()
+        protected static bool IsMonoBehaviour(TypeDefinition type)
         {
-            var monoBehaviourDefs = new List<TypeDefinition>();
-            foreach (var (name, module) in moduleDic)
+            while (type != null)
             {
-                foreach (var type in module.Types)
+                if (type.BaseType == null)
+                    return false;
+                if (type.BaseType.FullName == "UnityEngine.MonoBehaviour")
+                    return true;
+                try
                 {
-                    if (type.BaseType?.FullName == "UnityEngine.MonoBehaviour")
-                    {
-                        monoBehaviourDefs.Add(type);
-                    }
+                    // Resolve the base type to continue up the hierarchy
+                    type = type.BaseType.Resolve();
+                }
+                catch
+                {
+                    // If we can't resolve, break out
+                    break;
                 }
             }
-            return monoBehaviourDefs;
-        }
-
-        public TypeDefinition? GetTypeDefinition(string assemblyName, string fullName)
-        {
-            if (moduleDic.TryGetValue(assemblyName, out var module))
-            {
-                var typeDef = module.GetType(fullName);
-                if (typeDef == null && assemblyName == "UnityEngine.dll")
-                {
-                    foreach (var pair in moduleDic)
-                    {
-                        typeDef = pair.Value.GetType(fullName);
-                        if (typeDef != null)
-                        {
-                            break;
-                        }
-                    }
-                }
-                return typeDef;
-            }
-            return null;
-        }
-
-        public List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName)
-        {
-            var typeDef = GetTypeDefinition(assemblyName, fullName);
-            if (typeDef != null)
-            {
-                return GenerateTreeNodes(typeDef);
-            }
-            return null;
-        }
-
-        public List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)
-        {
-            //  from AssetStudioUtility.MonoBehaviourConverter
-            var m_Nodes = new List<TypeTreeNode>();
-            serializedTypeHelper.AddMonoBehaviour(m_Nodes, 0);
-            var converter = new TypeDefinitionConverter(typeDef, serializedTypeHelper, 1);
-            m_Nodes.AddRange(converter.ConvertToTypeTreeNodes());
-            return m_Nodes;
+            return false;
         }
 
     }
