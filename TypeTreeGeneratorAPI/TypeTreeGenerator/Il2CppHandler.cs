@@ -14,28 +14,13 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
 
         static Il2CppHandler()
         {
-            InstructionSetRegistry.RegisterInstructionSet<X86InstructionSet>(DefaultInstructionSets.X86_32);
-            InstructionSetRegistry.RegisterInstructionSet<X86InstructionSet>(DefaultInstructionSets.X86_64);
-            InstructionSetRegistry.RegisterInstructionSet<WasmInstructionSet>(DefaultInstructionSets.WASM);
-            InstructionSetRegistry.RegisterInstructionSet<ArmV7InstructionSet>(DefaultInstructionSets.ARM_V7);
-            bool useNewArm64 = false;
-            if (useNewArm64)
-            {
-                InstructionSetRegistry.RegisterInstructionSet<NewArmV8InstructionSet>(DefaultInstructionSets.ARM_V8);
-            }
-            else
-            {
-                InstructionSetRegistry.RegisterInstructionSet<Arm64InstructionSet>(DefaultInstructionSets.ARM_V8);
-            }
-
-            LibCpp2IlBinaryRegistry.RegisterBuiltInBinarySupport();
+            Cpp2IlApi.Init();
+            Cpp2IlApi.ConfigureLib(false);
         }
 
         public static void Initialize(byte[] assemblyData, byte[] metadataData, string unityVersionString)
         {
             unityVersion = UnityVersion.Parse(unityVersionString);
-            Cpp2IlApi.Init();
-            Cpp2IlApi.ConfigureLib(false);
             Cpp2IlApi.InitializeLibCpp2Il(assemblyData, metadataData, unityVersion, false);
         }
 
@@ -60,6 +45,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
             var assemblyResolver = new AssemblyResolver();
             foreach (var assembly in outputFormat.BuildAssemblies(Cpp2IlApi.CurrentAppContext!))
             {
+                assemblyResolver.AddToCache(assembly.ManifestModule.Name, assembly);
                 foreach (var module in assembly.Modules)
                 {
                     module.MetadataResolver = new AsmResolver.DotNet.DefaultMetadataResolver(assemblyResolver);
@@ -71,6 +57,11 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
         public class AssemblyResolver : AsmResolver.DotNet.IAssemblyResolver
         {
             public Dictionary<string, AsmResolver.DotNet.AssemblyDefinition> assemblyDefinitions = new();
+
+            public void AddToCache(string name, AsmResolver.DotNet.AssemblyDefinition definition)
+            {
+                assemblyDefinitions[name] = definition;
+            }
 
             public void AddToCache(AsmResolver.DotNet.AssemblyDescriptor descriptor, AsmResolver.DotNet.AssemblyDefinition definition)
             {

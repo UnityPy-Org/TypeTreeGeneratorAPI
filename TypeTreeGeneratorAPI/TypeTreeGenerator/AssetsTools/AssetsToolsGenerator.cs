@@ -90,6 +90,12 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
             monoCecilGenerator.loadedAssemblies.Add(assembly.MainModule.Name, assembly);
         }
 
+        public override void LoadIl2Cpp(byte[] assemblyData, byte[] metadataData)
+        {
+            base.LoadIl2Cpp(assemblyData, metadataData);
+            cpp2IlGenerator.SetInitialized(true);
+        }
+
         public override List<(string, string)> GetMonoBehaviourDefinitions()
         {
             if (monoLoaded)
