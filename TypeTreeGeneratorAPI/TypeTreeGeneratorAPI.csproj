@@ -11,28 +11,39 @@
 
   <ItemGroup>
     <PackageReference Include="AssetRipper.Primitives" Version="3.2.0" />
+    <PackageReference Include="AssetsTools.NET.Cpp2IL" Version="1.0.1-preview1" />
     <PackageReference Include="AssetsTools.NET.MonoCecil" Version="1.0.1" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-pre-release.19" />
 	<PackageReference Include="System.Text.Json" Version="9.0.2" />
   </ItemGroup>
-
+	
 	<ItemGroup>
 		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\CecilUtils.cs">
-			<Link>Unity.CecilTools\CecilUtils.cs</Link>
+			<Link>TypeTreeGenerator\AssetStudio\Unity.CecilTools\CecilUtils.cs</Link>
 		</Compile>
 		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\ElementType.cs">
-			<Link>Unity.CecilTools\ElementType.cs</Link>
+			<Link>TypeTreeGenerator\AssetStudio\Unity.CecilTools\ElementType.cs</Link>
 		</Compile>
 		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\**\*.cs">
-			<Link>Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)</Link>
+			<Link>Backend\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)</Link>
 		</Compile>
 		<Compile Include="..\UnityCsReference\Tools\Unity.SerializationLogic\UnitySerializationLogic.cs">
-			<Link>Unity.SerializationLogic\UnitySerializationLogic.cs</Link>
+			<Link>TypeTreeGenerator\AssetStudio\Unity.SerializationLogic\UnitySerializationLogic.cs</Link>
 		</Compile>
 		<Compile Include="..\UnityCsReference\Tools\Unity.SerializationLogic\UnityEngineTypePredicates.cs">
-			<Link>Unity.SerializationLogic\UnityEngineTypePredicates.cs</Link>
+			<Link>TypeTreeGenerator\AssetStudio\Unity.SerializationLogic\UnityEngineTypePredicates.cs</Link>
 		</Compile>
 	</ItemGroup>
 	
+	<ItemGroup>
+	  <ProjectReference Include="..\AssetRipper\Source\AssetRipper.SerializationLogic\AssetRipper.SerializationLogic.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\MethodDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\ResolutionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeReferenceExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
 </Project>

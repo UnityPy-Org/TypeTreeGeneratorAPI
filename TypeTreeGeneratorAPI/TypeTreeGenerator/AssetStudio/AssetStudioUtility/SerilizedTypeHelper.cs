@@ -1,4 +1,4 @@
-﻿namespace AssetStudio
+﻿namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
 {
     public class SerializedTypeHelper
     {

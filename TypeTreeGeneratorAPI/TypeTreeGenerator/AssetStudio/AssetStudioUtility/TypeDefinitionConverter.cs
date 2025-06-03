@@ -2,7 +2,7 @@
 using Unity.CecilTools;
 using Unity.SerializationLogic;
 
-namespace AssetStudio
+namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
 {
     public class TypeDefinitionConverter
     {

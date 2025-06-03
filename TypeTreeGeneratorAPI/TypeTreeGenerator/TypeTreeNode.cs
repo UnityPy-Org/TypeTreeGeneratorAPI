@@ -1,16 +1,9 @@
-﻿// Modification:
-// 1. Add JsonInclude attribute to serialize the field.
-// 2. Class to Struct
-// 3. Remove unused fields (for this application)
-// 2. Add StructLayout attribute to specify the layout of the struct.
-
-
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 
-namespace AssetStudio
+namespace TypeTreeGeneratorAPI.TypeTreeGenerator
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto, Pack = 4)]
     public struct TypeTreeNode
     {
         [MarshalAs(UnmanagedType.LPStr)]
@@ -27,7 +20,7 @@ namespace AssetStudio
         [JsonInclude]
         public int m_MetaFlag;
 
-        public TypeTreeNode(string type, string name, int level, bool align)
+        public TypeTreeNode(string type, string name, int level, bool align = false)
         {
             m_Type = type;
             m_Name = name;
