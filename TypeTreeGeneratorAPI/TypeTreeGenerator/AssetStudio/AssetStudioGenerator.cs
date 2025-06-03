@@ -1,22 +1,20 @@
-﻿using AssetRipper.Primitives;
-using AssetStudio;
-using Mono.Cecil;
+﻿using Mono.Cecil;
+using TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility;
 
-namespace TypeTreeGeneratorAPI
+namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
 {
-    public class TypeTreeGenerator_AssetStudio : TypeTreeGenerator
+    public class AssetStudioGenerator : TypeTreeGenerator
     {
-        private Dictionary<string, ModuleDefinition> moduleDic;
+        private Dictionary<string, ModuleDefinition> moduleDic = new();
         private SerializedTypeHelper serializedTypeHelper;
+        private readonly MonoCecilResolver resolver = new();
 
-        public TypeTreeGenerator_AssetStudio(string unityVersion) : base(unityVersion)
+        public AssetStudioGenerator(string unityVersionString) : base(unityVersionString)
         {
-            moduleDic = new Dictionary<string, ModuleDefinition>();
-            var arVersion = UnityVersion.Parse(unityVersion);
-            serializedTypeHelper = new SerializedTypeHelper([arVersion.Major, arVersion.Minor, arVersion.Build, arVersion.TypeNumber]);
+            serializedTypeHelper = new SerializedTypeHelper([unityVersion.Major, unityVersion.Minor, unityVersion.Build, unityVersion.TypeNumber]);
         }
 
-        ~TypeTreeGenerator_AssetStudio()
+        ~AssetStudioGenerator()
         {
             foreach (var pair in moduleDic)
             {
@@ -25,23 +23,23 @@ namespace TypeTreeGeneratorAPI
             moduleDic.Clear();
         }
 
-        public override void LoadDLL(Stream dllStream)
+        public override void LoadDll(Stream dllStream)
         {
-            var assembly = AssemblyDefinition.ReadAssembly(dllStream, readerParameters);
+            var assembly = AssemblyDefinition.ReadAssembly(dllStream, resolver.readerParameters);
             resolver.Register(assembly);
             moduleDic.Add(assembly.MainModule.Name, assembly.MainModule);
         }
 
-        public override List<Tuple<string, string>> GetMonoBehaviourDefinitions()
+        public override List<(string, string)> GetMonoBehaviourDefinitions()
         {
-            var monoBehaviourDefs = new List<Tuple<string, string>>();
+            var monoBehaviourDefs = new List<(string, string)>();
             foreach (var (moduleName, module) in moduleDic)
             {
                 foreach (var type in module.Types)
                 {
                     if (IsMonoBehaviour(type))
                     {
-                        monoBehaviourDefs.Add(new Tuple<string, string>(moduleName, type.FullName));
+                        monoBehaviourDefs.Add((moduleName, type.FullName));
                     }
                 }
             }
@@ -58,7 +56,29 @@ namespace TypeTreeGeneratorAPI
             return null;
         }
 
-        public List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)
+        private static bool IsMonoBehaviour(TypeDefinition type)
+        {
+            while (type != null)
+            {
+                if (type.BaseType == null)
+                    return false;
+                if (type.BaseType.FullName == "UnityEngine.MonoBehaviour")
+                    return true;
+                try
+                {
+                    // Resolve the base type to continue up the hierarchy
+                    type = type.BaseType.Resolve();
+                }
+                catch
+                {
+                    // If we can't resolve, break out
+                    break;
+                }
+            }
+            return false;
+        }
+
+        private List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)
         {
             //  from AssetStudioUtility.MonoBehaviourConverter
             var m_Nodes = new List<TypeTreeNode>();
@@ -68,7 +88,7 @@ namespace TypeTreeGeneratorAPI
             return m_Nodes;
         }
 
-        public TypeDefinition? GetTypeDefinition(string assemblyName, string fullName)
+        private TypeDefinition? GetTypeDefinition(string assemblyName, string fullName)
         {
             if (moduleDic.TryGetValue(assemblyName, out var module))
             {

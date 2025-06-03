@@ -1,7 +1,7 @@
 import ctypes
 import os
 import platform
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Literal
 
 
 class TypeTreeNodeNative(ctypes.Structure):
@@ -30,7 +30,7 @@ class TypeTreeNode:
 DLL: ctypes.CDLL = None  # type: ignore
 
 
-def init_dll():
+def init_dll(asm_path: Optional[str] = None):
     global DLL
     if DLL is not None:  # type: ignore
         return
@@ -38,19 +38,19 @@ def init_dll():
     system = platform.system()
     LOCAL = os.path.dirname(os.path.realpath(__file__))
     if system == "Windows":
-        fp = os.path.join(LOCAL, "TypeTreeGeneratorAPI.dll")
+        fp = asm_path or os.path.join(LOCAL, "TypeTreeGeneratorAPI.dll")
         dll = ctypes.WinDLL(fp)
     elif system == "Linux":
-        fp = os.path.join(LOCAL, "TypeTreeGeneratorAPI.so")
+        fp = asm_path or os.path.join(LOCAL, "TypeTreeGeneratorAPI.so")
         dll = ctypes.CDLL(fp)
     elif system == "Darwin":
-        fp = os.path.join(LOCAL, "TypeTreeGeneratorAPI.dylib")
+        fp = asm_path or os.path.join(LOCAL, "TypeTreeGeneratorAPI.dylib")
         dll = ctypes.CDLL(fp)
     else:
         raise NotImplementedError(f"TypeTreeGenerator doesn't support {system}!")
 
     # set function types
-    dll.TypeTreeGenerator_init.argtypes = [ctypes.c_char_p]
+    dll.TypeTreeGenerator_init.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
     dll.TypeTreeGenerator_init.restype = ctypes.c_void_p
     dll.TypeTreeGenerator_loadDLL.argtypes = [
         ctypes.c_void_p,
@@ -99,9 +99,18 @@ def init_dll():
 class TypeTreeGenerator:
     ptr = ctypes.c_void_p
 
-    def __init__(self, unity_version: str):
-        init_dll()
-        self.ptr = DLL.TypeTreeGenerator_init(unity_version.encode("ascii"))
+    def __init__(
+        self,
+        unity_version: str,
+        generator: Literal["AssetStudio", "AssetsTools", "AssetRipper"] = "AssetStudio",
+        asm_path: Optional[str] = None,
+    ):
+        init_dll(asm_path)
+        self.ptr = DLL.TypeTreeGenerator_init(
+            unity_version.encode("ascii"), generator.encode("ascii")
+        )
+        if not self.ptr:
+            raise RuntimeError("Failed to initialize TypeTreeGenerator")
 
     def __del__(self):
         DLL.TypeTreeGenerator_del(self.ptr)

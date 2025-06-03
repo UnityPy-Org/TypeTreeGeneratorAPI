@@ -1,7 +1,7 @@
-﻿using AssetStudio;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TypeTreeGeneratorAPI.TypeTreeGenerator;
 
 [JsonSerializable(typeof(TypeTreeNode))]
 [JsonSerializable(typeof(List<TypeTreeNode>))] // For collections

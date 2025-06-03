@@ -1,3 +1,10 @@
 [submodule "UnityCsReference"]
 	path = UnityCsReference
 	url = https://github.com/Unity-Technologies/UnityCsReference.git
+	branch = master
+	recommendShallow = true
+[submodule "AssetRipper"]
+	path = AssetRipper
+	url = https://github.com/AssetRipper/AssetRipper.git
+	branch = master
+	recommendShallow = true

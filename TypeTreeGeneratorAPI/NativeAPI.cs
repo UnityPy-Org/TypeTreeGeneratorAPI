@@ -1,26 +1,31 @@
-﻿using AssetStudio;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using TypeTreeGeneratorAPI.TypeTreeGenerator;
 
 namespace TypeTreeGeneratorAPI
 {
     public static class NativeAPI
     {
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_init")]
-        public static IntPtr TypeTreeGenerator_create(IntPtr unityVersionPtr)
+        public static IntPtr TypeTreeGenerator_create(IntPtr unityVersionPtr, IntPtr generatorName)
         {
             string? unityVersion = Marshal.PtrToStringUTF8(unityVersionPtr);
+            string? generatorNameStr = Marshal.PtrToStringUTF8(generatorName);
             if (unityVersion == null)
             {
                 return IntPtr.Zero;
             }
             try
             {
-                var typeTreeGenerator = new TypeTreeGenerator_AssetStudio(unityVersion);
-                return GCHandle.ToIntPtr(GCHandle.Alloc(typeTreeGenerator));
+                var handle = new TypeTreeGeneratorHandle((generatorNameStr != null) ? generatorNameStr : "AssetStudio", unityVersion);
+                return GCHandle.ToIntPtr(GCHandle.Alloc(handle));
             }
-            catch
+            catch (Exception ex)
             {
-                return IntPtr.Zero;
+                Console.WriteLine($"Error creating TypeTreeGenerator: {ex.Message}");
+                // If the generator type is not recognized, we return IntPtr.Zero to indicate failure.
+                // This should be handled by the caller to avoid further issues.
+                Console.WriteLine("Failed to create TypeTreeGenerator instance. Ensure the generator name is correct and supported.");
+                    return IntPtr.Zero;
             }
         }
 
@@ -33,14 +38,14 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator_AssetStudio)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+                var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
                 using (var stream = new UnmanagedMemoryStream(dllPtr, dllLength, dllLength, FileAccess.ReadWrite))
                 {
                     if (stream == null)
                     {
                         return -1;
                     }
-                    typeTreeGenerator.LoadDLL(stream);
+                    handle.Instance.LoadDll(stream);
                 }
                 return 0;
             }
@@ -61,7 +66,7 @@ namespace TypeTreeGeneratorAPI
 
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator_AssetStudio)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+                var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
                 byte[] assemblyData = new byte[assemblyDataLength];
                 byte[] metadataData = new byte[metadataDataLength];
 
@@ -74,7 +79,7 @@ namespace TypeTreeGeneratorAPI
                     Buffer.MemoryCopy(metadataDataPtr, managedPtr, metadataDataLength, metadataDataLength);
                 }
 
-                typeTreeGenerator.LoadIL2CPP(assemblyData, metadataData);
+                handle.Instance.LoadIl2Cpp(assemblyData, metadataData);
                 return 0;
             }
             catch
@@ -115,9 +120,9 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator_AssetStudio)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+                var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
 
-                var typeTreeNodes = typeTreeGenerator.GenerateTreeNodes(assemblyName, fullName);
+                var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
                     return -1;
@@ -144,8 +149,8 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator_AssetStudio)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
-                var typeTreeNodes = typeTreeGenerator.GenerateTreeNodes(assemblyName, fullName);
+                var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+                var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
                     return -1;
@@ -187,9 +192,9 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var typeTreeGenerator = (TypeTreeGenerator_AssetStudio)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+                var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
 
-                var typeNames = typeTreeGenerator.GetMonoBehaviourDefinitions();
+                var typeNames = handle.Instance.GetMonoBehaviourDefinitions();
 
                 var arrayLength = typeNames.Count;
                 var arrayPtr = Marshal.AllocCoTaskMem(Marshal.SizeOf<IntPtr>() * arrayLength * 2);
