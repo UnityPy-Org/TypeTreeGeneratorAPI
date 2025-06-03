@@ -17,11 +17,20 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
     {
         public Cpp2IlTempGeneratorPatch() : base("", "")
         {
-            // As we initialized LibCpp2Il, we can set the _initialized field to true
-            // otherwise Cpp2IlTempGenerator will try to initialize again from the dummy paths
-            typeof(Cpp2IlTempGenerator)
-                .GetField("_initialized", BindingFlags.Instance | BindingFlags.NonPublic)
-                ?.SetValue(this, true);
+        }
+        public void SetInitialized(bool initialized)
+        {
+            // This is a workaround to set the _initialized field to true
+            // as we already initialized LibCpp2Il in the constructor
+            var field = typeof(Cpp2IlTempGenerator).GetField("_initialized", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (field != null)
+            {
+                field.SetValue(this, initialized);
+            }
+            else
+            {
+                throw new InvalidOperationException("Could not find the _initialized field in Cpp2IlTempGenerator.");
+            }
         }
     }
 
