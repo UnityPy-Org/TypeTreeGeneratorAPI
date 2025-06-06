@@ -1,38 +1,76 @@
-﻿using TypeTreeGeneratorAPI;
+﻿using System.CommandLine;
+using TypeTreeGeneratorAPI;
+using TypeTreeGeneratorAPI.TypeTreeGenerator;
 
-if (args.Length < 2)
+class Program
 {
-    Console.WriteLine("Usage: TypeTreeGeneratorCLI <unity_version> <dll directory>");
-    Console.WriteLine("Usage: TypeTreeGeneratorCLI <unity_version> <il2cpp assembly> <il2cpp metadata>");
-    return;
-}
-
-var generator = new TypeTreeGenerator_AssetStudio(args[0]);
-
-if (args.Length == 2)
-{
-    var dll_dir = args[1];
-    foreach (var dll_fp in Directory.GetFiles(dll_dir, "*.dll"))
+    static async Task<int> Main(string[] args)
     {
-        var dll = File.ReadAllBytes(dll_fp);
-        generator.LoadDLL(dll);
-    }
-}
-else if (args.Length == 3)
-{
-    var assembly_fp = args[1];
-    var metadata_fp = args[2];
-    var assembly = File.ReadAllBytes(assembly_fp);
-    var metadata = File.ReadAllBytes(metadata_fp);
-    generator.LoadIL2CPP(assembly, metadata);
-}
+        var unityVersionOption = new Option<string>(
+            aliases: ["--unity-version", "-uv"],
+            description: "The Unity Version of the game"
+        )
+        { IsRequired = true };
 
-foreach (var def in generator.GetMonoBehaviourDefinitions())
-{
-    var nodes = generator.GenerateTreeNodes(def.Module.Name, def.FullName)!;
-    if (nodes.Count == 0)
-        continue;
-    Console.WriteLine($"{def.Module.Name} -  {def.FullName}");
-    Console.WriteLine(nodes.Count);
-    Console.WriteLine(TypeTreeNodeSerializer.ToJson(nodes));
+        var backendOption = new Option<string>(
+            aliases: ["--backend", "-b"],
+            description: "The backend to use (AssetStudio, AssetsTools, AssetRipper)",
+            getDefaultValue: () => "AssetsTools"
+        );
+
+
+        var monoDirectoryOption = new Option<string?>(
+            aliases: ["--mono-directory", "-md"],
+            description: "The path to a directory containing .dll files"
+        );
+
+        var il2cppAssemblyPathOption = new Option<string?>(
+            aliases: ["--il2cpp-assembly", "-ia"],
+            description: "The path to an il2cpp assembly (GameAssembly.dll, libil2cpp.so)"
+        );
+
+        var il2cppMetadataPathOption = new Option<string?>(
+            aliases: ["--il2cpp-metadata", "-im"],
+            description: "The path to an il2cpp metadata file (global-metadata.dat)"
+        );
+
+        var rootCommand = new RootCommand("TypeTreeGeneratorAPI");
+        rootCommand.AddOption(unityVersionOption);
+        rootCommand.AddOption(backendOption);
+        rootCommand.AddOption(monoDirectoryOption);
+        rootCommand.AddOption(il2cppAssemblyPathOption);
+        rootCommand.AddOption(il2cppMetadataPathOption);
+
+        rootCommand.SetHandler((unityVersion, backend, monoDirectory, il2cppAssembly, il2CppMetadata) =>
+        {
+            var handle = new TypeTreeGeneratorHandle(backend, unityVersion);
+            if (monoDirectory is not null)
+            {
+                foreach (var dll_fp in Directory.GetFiles(monoDirectory, "*.dll"))
+                {
+                    var dll = File.ReadAllBytes(dll_fp);
+                    handle.Instance.LoadDll(dll);
+                }
+            }
+            if (il2cppAssembly is not null && il2CppMetadata is not null)
+            {
+                var assembly = File.ReadAllBytes(il2cppAssembly);
+                var metadata = File.ReadAllBytes(il2CppMetadata);
+                handle.Instance.LoadIl2Cpp(assembly, metadata);
+            }
+
+            foreach (var (assemblyName, fullName) in handle.Instance.GetMonoBehaviourDefinitions())
+            {
+                var nodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName)!;
+                if (nodes == null || nodes.Count == 0)
+                    continue;
+                Console.WriteLine($"{assemblyName} -  {fullName}");
+                Console.WriteLine(nodes.Count);
+                Console.WriteLine(TypeTreeNodeSerializer.ToJson(nodes));
+            }
+        },
+            unityVersionOption, backendOption, monoDirectoryOption, il2cppAssemblyPathOption, il2cppMetadataPathOption);
+
+        return await rootCommand.InvokeAsync(args);
+    }
 }
