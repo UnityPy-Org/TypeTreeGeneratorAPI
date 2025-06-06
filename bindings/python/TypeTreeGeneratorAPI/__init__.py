@@ -1,7 +1,12 @@
-from .TypeTreeGenerator import (
-    TypeTreeGenerator as TypeTreeGenerator,
-    TypeTreeNode as TypeTreeNode,
-    TypeTreeNodeNative as TypeTreeNodeNative,
-)
+from .TypeTreeGenerator import TypeTreeBackend, TypeTreeGenerator, TypeTreeNode, TypeTreeNodeNative
 
 version = __version__ = "0.0.5"
+
+__all__ = [
+    "__version__",
+    "version",
+    "TypeTreeBackend",
+    "TypeTreeGenerator",
+    "TypeTreeNode",
+    "TypeTreeNodeNative",
+]
