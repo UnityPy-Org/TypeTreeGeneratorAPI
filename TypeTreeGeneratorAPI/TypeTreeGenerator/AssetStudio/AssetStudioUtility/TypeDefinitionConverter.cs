@@ -104,7 +104,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
             return TypeDef.Module.ImportReference(field);
         }
 
-        private TypeReference ResolveDeclaringType(TypeReference declaringType)
+        private TypeReference? ResolveDeclaringType(TypeReference declaringType)
         {
             var typeDefinition = declaringType.Resolve();
             if (typeDefinition == null || !typeDefinition.HasGenericParameters)

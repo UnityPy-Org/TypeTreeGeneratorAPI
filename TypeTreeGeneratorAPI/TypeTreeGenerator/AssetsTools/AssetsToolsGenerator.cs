@@ -139,10 +139,12 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
             }
             foreach (var asmDef in LibCpp2IlMain.TheMetadata.AssemblyDefinitions)
             {
-                if (asmDef.Image.Types == null)
+                if (asmDef.Image.Types == null || asmDef.AssemblyName.Name is null)
                     continue;
                 foreach (var asmType in asmDef.Image.Types)
                 {
+                    if (asmType.FullName is null)
+                        continue;
                     var baseType = asmType.BaseType?.baseType;
                     while (baseType != null)
                     {
@@ -178,6 +180,24 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
                 }
             }
             return false;
+        }
+
+        public override List<string> GetAssemblyNames()
+        {
+            if (monoLoaded && monoCecilGenerator != null)
+            {
+                return monoCecilGenerator.loadedAssemblies.Keys.ToList();
+            }
+            else if (LibCpp2IlMain.TheMetadata != null)
+            {
+                return LibCpp2IlMain.TheMetadata.AssemblyDefinitions
+                    .Select(asmDef => asmDef.AssemblyName.Name)
+                    .ToList();
+            }
+            else
+            {
+                return new List<string>();
+            }
         }
     }
 }

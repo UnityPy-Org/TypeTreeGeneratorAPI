@@ -28,9 +28,11 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
 
 
             var type = FindType(assemblyName, nameSpace, className);
-            var monoType = default(SerializableType?);
-            string? failureReason = null;
-            if (!new FieldSerializer(new UnityVersion(6000)).TryCreateSerializableType(type, monoTypeCache, out monoType, out failureReason))
+            if (type == null)
+            {
+                return null;
+            }
+            if (!new FieldSerializer(new UnityVersion(6000)).TryCreateSerializableType(type, monoTypeCache, out SerializableType? monoType, out string? failureReason))
             {
                 throw new InvalidOperationException($"Failed to create SerializableType: {failureReason}");
             }
@@ -43,6 +45,10 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
             var monoBehaviourDefinitions = new List<(string, string)>();
             foreach (var assembly in assemblyDefinitions.Values)
             {
+                if (assembly.Name is null)
+                {
+                    continue;
+                }
                 foreach (var module in assembly.Modules)
                 {
                     foreach (var type in module.TopLevelTypes)
@@ -118,6 +124,11 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
             }
 
             return null;
+        }
+
+        public override List<string> GetAssemblyNames()
+        {
+            return assemblyDefinitions.Keys.ToList();
         }
     }
 }
