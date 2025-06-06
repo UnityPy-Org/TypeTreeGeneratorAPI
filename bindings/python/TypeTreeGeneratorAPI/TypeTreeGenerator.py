@@ -2,6 +2,7 @@ import ctypes
 import json
 import os
 import platform
+from dataclasses import dataclass
 from typing import List, Literal, Optional, Tuple
 
 TypeTreeBackend = Literal["AssetStudio", "AssetsTools", "AssetRipper"]
@@ -17,17 +18,12 @@ class TypeTreeNodeNative(ctypes.Structure):
     ]
 
 
+@dataclass
 class TypeTreeNode:
     m_Type: str
     m_Name: str
     m_Level: int
     m_MetaFlag: int
-
-    def __init__(self, m_Type: str, m_Name: str, m_Level: int, m_MetaFlag: int):
-        self.m_Type = m_Type
-        self.m_Name = m_Name
-        self.m_Level = m_Level
-        self.m_MetaFlag = m_MetaFlag
 
 
 DLL: ctypes.CDLL = None  # type: ignore
