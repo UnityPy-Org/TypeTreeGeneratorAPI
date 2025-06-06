@@ -1,7 +1,8 @@
 import os
 import shutil
-from setuptools import setup
 from typing import Tuple
+
+from setuptools import setup
 
 try:
     from setuptools.command.bdist_wheel import bdist_wheel
@@ -56,13 +57,9 @@ class bdist_wheel_abi3(bdist_wheel):
         if platform_tag.startswith("win"):
             net_rid = BDIST_TAG_MAP_WIN[platform_tag]
         elif platform_tag.startswith("macosx"):
-            net_rid = next(
-                (v for k, v in BDIST_TAG_MAP_MAC.items() if platform_tag.endswith(k))
-            )
+            net_rid = next((v for k, v in BDIST_TAG_MAP_MAC.items() if platform_tag.endswith(k)))
         else:
-            net_rid = next(
-                (v for k, v in BDIST_TAG_MAP_LINUX.items() if platform_tag.endswith(k))
-            )
+            net_rid = next((v for k, v in BDIST_TAG_MAP_LINUX.items() if platform_tag.endswith(k)))
             if "musllinux" in platform_tag:
                 net_rid = net_rid.replace("-", "-musl-")
         copy_binary_files(net_rid)

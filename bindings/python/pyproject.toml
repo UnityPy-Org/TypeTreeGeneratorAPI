@@ -17,6 +17,9 @@ version = { attr = "TypeTreeGeneratorAPI.__version__" }
 [tool.setuptools.package-data]
 TypeTreeGeneratorAPI = ["*.dll", "*.so", "*.dylib"]
 
+[project.optional-dependencies]
+dev = ["ruff"]
+
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64", "armv7l"]
 
