@@ -1,6 +1,7 @@
 import ctypes
 import os
 import platform
+import json
 from typing import List, Optional, Tuple, Literal
 
 
@@ -90,6 +91,8 @@ def init_dll(asm_path: Optional[str] = None):
         ctypes.POINTER(ctypes.c_char_p),
         ctypes.c_int,
     ]
+    dll.TypeTreeGenerator_getLoadedDLLNames.argtypes = [ctypes.c_void_p]
+    dll.TypeTreeGenerator_getLoadedDLLNames.restype = ctypes.c_void_p
 
     dll.TypeTreeGenerator_del.argtypes = [ctypes.c_void_p]
     dll.FreeCoTaskMem.argtypes = [ctypes.c_void_p]
@@ -177,6 +180,18 @@ class TypeTreeGenerator:
         names = [name.decode("utf-8") for name in ptr_array.contents]
         DLL.TypeTreeGenerator_freeMonoBehaviorDefinitions(names_ptr, names_cnt)
         return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
+
+    def get_loaded_dll_names(self) -> List[str]:
+        names_ptr = DLL.TypeTreeGenerator_getLoadedDLLNames(self.ptr)
+        if not names_ptr:
+            return []
+        names_ptr_c = ctypes.cast(names_ptr, ctypes.c_char_p)
+        if not names_ptr_c.value:
+            DLL.FreeCoTaskMem(names_ptr)
+            return []
+        names = json.loads(names_ptr_c.value)
+        DLL.FreeCoTaskMem(names_ptr)
+        return names
 
 
 __all__ = ("TypeTreeGenerator", "TypeTreeNode", "TypeTreeNodeNative")
