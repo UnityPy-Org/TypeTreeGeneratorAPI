@@ -6,6 +6,7 @@
 	  <Nullable>enable</Nullable>
 	  <PublishAot>true</PublishAot>
 	  <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+	  <InvariantGlobalization>true</InvariantGlobalization>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
