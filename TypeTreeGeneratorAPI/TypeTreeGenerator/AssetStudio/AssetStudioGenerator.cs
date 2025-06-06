@@ -108,5 +108,10 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
             }
             return null;
         }
+
+        public override List<string> GetAssemblyNames()
+        {
+            return [.. moduleDic.Keys];
+        }
     }
 }

@@ -17,6 +17,8 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
         abstract public List<(string, string)> GetMonoBehaviourDefinitions();
         abstract public List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName);
 
+        abstract public List<string> GetAssemblyNames();
+
         abstract public void LoadDll(Stream dllStream);
 
         virtual public void LoadDll(byte[] dll)

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Reflection;
+using System.Runtime.InteropServices;
 using TypeTreeGeneratorAPI.TypeTreeGenerator;
 
 namespace TypeTreeGeneratorAPI
@@ -21,11 +22,11 @@ namespace TypeTreeGeneratorAPI
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating TypeTreeGenerator: {ex.Message}");
+                Console.WriteLine($"Error creating TypeTreeGenerator:\n{ex.Message}");
                 // If the generator type is not recognized, we return IntPtr.Zero to indicate failure.
                 // This should be handled by the caller to avoid further issues.
                 Console.WriteLine("Failed to create TypeTreeGenerator instance. Ensure the generator name is correct and supported.");
-                    return IntPtr.Zero;
+                return IntPtr.Zero;
             }
         }
 
@@ -49,8 +50,9 @@ namespace TypeTreeGeneratorAPI
                 }
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error loading dll:\n{ex.Message}");
                 return -1;
             }
         }
@@ -82,8 +84,9 @@ namespace TypeTreeGeneratorAPI
                 handle.Instance.LoadIl2Cpp(assemblyData, metadataData);
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error loading il2cpp:\n{ex.Message}");
                 return -1;
             }
         }
@@ -102,10 +105,28 @@ namespace TypeTreeGeneratorAPI
                 gch.Free();
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error deleting TypeTreeGenerator:\n{ex.Message}");
                 return -1;
             }
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getLoadedDLLNames")]
+        public static IntPtr TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr)
+        {
+            if (typeTreeGeneratorPtr == IntPtr.Zero)
+            {
+                return 0;
+            }
+            var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
+            var names = handle.Instance.GetAssemblyNames();
+            if (names == null || names.Count == 0)
+            {
+                return 0;
+            }
+            var json = string.Join(",", names.Select(name => $"\"{name}\""));
+            return Marshal.StringToCoTaskMemUTF8($"[{json}]");
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesJson")]
@@ -131,8 +152,9 @@ namespace TypeTreeGeneratorAPI
                 Marshal.WriteIntPtr(jsonAddr, Marshal.StringToCoTaskMemUTF8(json));
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error generating tree nodes:\n{ex.Message}");
                 return -1;
             }
         }
@@ -162,8 +184,9 @@ namespace TypeTreeGeneratorAPI
 
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error generating tree nodes:\n{ex.Message}");
                 return -1;
             }
         }
@@ -211,8 +234,9 @@ namespace TypeTreeGeneratorAPI
 
                 return 0;
             }
-            catch
+            catch (Exception ex)
             {
+                Console.WriteLine($"Error geting mono behaviour definitions:\n{ex.Message}");
                 return -1;
             }
         }
