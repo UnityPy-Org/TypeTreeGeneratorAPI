@@ -1,8 +1,10 @@
 import ctypes
+import json
 import os
 import platform
-import json
-from typing import List, Optional, Tuple, Literal
+from typing import List, Literal, Optional, Tuple
+
+TypeTreeBackend = Literal["AssetStudio", "AssetsTools", "AssetRipper"]
 
 
 class TypeTreeNodeNative(ctypes.Structure):
@@ -105,13 +107,11 @@ class TypeTreeGenerator:
     def __init__(
         self,
         unity_version: str,
-        generator: Literal["AssetStudio", "AssetsTools", "AssetRipper"] = "AssetStudio",
+        generator: TypeTreeBackend = "AssetStudio",
         asm_path: Optional[str] = None,
     ):
         init_dll(asm_path)
-        self.ptr = DLL.TypeTreeGenerator_init(
-            unity_version.encode("ascii"), generator.encode("ascii")
-        )
+        self.ptr = DLL.TypeTreeGenerator_init(unity_version.encode("ascii"), generator.encode("ascii"))
         if not self.ptr:
             raise RuntimeError("Failed to initialize TypeTreeGenerator")
 
@@ -119,14 +119,12 @@ class TypeTreeGenerator:
         DLL.TypeTreeGenerator_del(self.ptr)
 
     def load_dll(self, dll: bytes):
-        assert not DLL.TypeTreeGenerator_loadDLL(self.ptr, dll, len(dll)), (
-            "failed to load dll"
-        )
+        assert not DLL.TypeTreeGenerator_loadDLL(self.ptr, dll, len(dll)), "failed to load dll"
 
     def load_il2cpp(self, il2cpp: bytes, metadata: bytes):
-        assert not DLL.TypeTreeGenerator_loadIL2CPP(
-            self.ptr, il2cpp, len(il2cpp), metadata, len(metadata)
-        ), "failed to load il2cpp"
+        assert not DLL.TypeTreeGenerator_loadIL2CPP(self.ptr, il2cpp, len(il2cpp), metadata, len(metadata)), (
+            "failed to load il2cpp"
+        )
 
     def get_nodes_as_json(self, assembly: str, fullname: str) -> str:
         jsonPtr = ctypes.c_char_p()
@@ -151,9 +149,7 @@ class TypeTreeGenerator:
             ctypes.byref(nodes_ptr),
             ctypes.byref(nodes_count),
         ), "failed to dump nodes raw"
-        nodes_array = ctypes.cast(
-            nodes_ptr, ctypes.POINTER(TypeTreeNodeNative * nodes_count.value)
-        ).contents
+        nodes_array = ctypes.cast(nodes_ptr, ctypes.POINTER(TypeTreeNodeNative * nodes_count.value)).contents
         nodes = [
             TypeTreeNode(
                 m_Type=node.m_Type.decode("ascii"),
@@ -174,9 +170,7 @@ class TypeTreeGenerator:
             ctypes.byref(names_ptr),
             ctypes.byref(names_cnt),
         ), "failed to get module exports"
-        ptr_array = ctypes.cast(
-            names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value)
-        )
+        ptr_array = ctypes.cast(names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value))
         names = [name.decode("utf-8") for name in ptr_array.contents]
         DLL.TypeTreeGenerator_freeMonoBehaviorDefinitions(names_ptr, names_cnt)
         return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
@@ -194,4 +188,4 @@ class TypeTreeGenerator:
         return names
 
 
-__all__ = ("TypeTreeGenerator", "TypeTreeNode", "TypeTreeNodeNative")
+__all__ = ["TypeTreeGenerator", "TypeTreeNode", "TypeTreeNodeNative", "TypeTreeBackend"]
