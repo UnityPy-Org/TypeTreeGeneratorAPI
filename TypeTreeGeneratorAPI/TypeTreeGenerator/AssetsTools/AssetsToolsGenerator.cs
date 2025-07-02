@@ -47,10 +47,69 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
                 Name = "Base",
                 Type = className,
                 ValueType = AssetValueType.None,
-                IsArray = false,
-                IsAligned = false,
-                HasValue = false,
-                Children = new List<AssetTypeTemplateField>(0)
+                Children = [
+                    new AssetTypeTemplateField {
+                        Name = "m_GameObject",
+                        Type = "PPtr<GameObject>",
+                        Children = [
+                            new AssetTypeTemplateField {
+                                Name = "m_FileID",
+                                Type = "int",
+                                Children = [],
+                            },
+                            new AssetTypeTemplateField {
+                                Name = "m_PathID",
+                                Type = "SInt64",
+                                Children = [],
+                            },
+                        ],
+                    },
+                    new AssetTypeTemplateField {
+                        Name = "m_Enabled",
+                        Type = "UInt8",
+                        IsAligned = true,
+                        Children = [],
+                    },
+                    new AssetTypeTemplateField {
+                        Name = "m_Script",
+                        Type = "PPtr<MonoScript>",
+                        Children = [
+                            new AssetTypeTemplateField {
+                                Name = "m_FileID",
+                                Type = "int",
+                                Children = [],
+                            },
+                            new AssetTypeTemplateField {
+                                Name = "m_PathID",
+                                Type = "SInt64",
+                                Children = [],
+                            },
+                        ],
+                    },
+                    new AssetTypeTemplateField {
+                        Name = "m_Name",
+                        Type = "string",
+                        Children = [
+                            new AssetTypeTemplateField {
+                                Name = "Array",
+                                Type = "Array",
+                                IsAligned = true,
+                                Children = [
+                                    new AssetTypeTemplateField {
+                                        Name = "size",
+                                        Type = "int",
+                                        Children = [],
+                                    },
+                                    new AssetTypeTemplateField {
+                                        Name = "data",
+                                        Type = "char",
+                                        Children = [],
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                ],
             };
 
             IMonoBehaviourTemplateGeneratorPatch monoTemplateGenerator = monoLoaded ? monoCecilGenerator : cpp2IlGenerator;
