@@ -9,7 +9,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
 {
     public interface IMonoBehaviourTemplateGeneratorPatch : IMonoBehaviourTemplateGenerator
     {
-        virtual AssetTypeTemplateField GetTemplateFieldPatch(AssetTypeTemplateField templateField, string assemblyName, string nameSpace, string className, UnityVersion unityVersionExtra)
+        virtual AssetTypeTemplateField? GetTemplateFieldPatch(AssetTypeTemplateField templateField, string assemblyName, string nameSpace, string className, UnityVersion unityVersionExtra)
         {
             return GetTemplateField(templateField, assemblyName, nameSpace, className, unityVersionExtra);
         }
@@ -44,7 +44,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
         {
         }
 
-        public AssetTypeTemplateField GetTemplateFieldPatch(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
+        public AssetTypeTemplateField? GetTemplateFieldPatch(AssetTypeTemplateField baseField, string assemblyName, string nameSpace, string className, UnityVersion unityVersion)
         {
             // 1:1 copy of the original method, but without filepath check and using the loadedAssemblies dictionary
             if (!assemblyName.EndsWith(".dll"))
@@ -54,6 +54,10 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
             var asm = loadedAssemblies[assemblyName];
 
             List<AssetTypeTemplateField> newFields = Read(asm, nameSpace, className, unityVersion);
+            if (newFields == null)
+            {
+                return null;
+            }
 
             AssetTypeTemplateField newBaseField = baseField.Clone();
             newBaseField.Children.AddRange(newFields);
