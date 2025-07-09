@@ -8,6 +8,9 @@
 	  <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	  <InvariantGlobalization>true</InvariantGlobalization>
 	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	  
+	  <TargetName>$(MSBuildProjectName)</TargetName>
+	  <TargetName Condition="'$(OS)' != 'Windows_NT'">lib$(TargetName)</TargetName>
   </PropertyGroup>
 
   <ItemGroup>
