@@ -48,7 +48,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
 
         public override List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName)
         {
-            var typeDef = GetTypeDefinition(assemblyName, fullName);
+            var assemblyNameNormalized = assemblyName.EndsWith(".dll") ? assemblyName : $"{assemblyName}.dll";
+            
+            var typeDef = GetTypeDefinition(assemblyNameNormalized, fullName);
             if (typeDef != null)
             {
                 return GenerateTreeNodes(typeDef);
