@@ -7,7 +7,7 @@ namespace TypeTreeGeneratorAPI
     public static class NativeAPI
     {
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_init")]
-        public static IntPtr TypeTreeGenerator_create(IntPtr unityVersionPtr, IntPtr generatorName)
+        public static IntPtr TypeTreeGenerator_init(IntPtr unityVersionPtr, IntPtr generatorName)
         {
             string? unityVersion = Marshal.PtrToStringUTF8(unityVersionPtr);
             string? generatorNameStr = Marshal.PtrToStringUTF8(generatorName);
@@ -92,7 +92,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_del")]
-        public static int TypeTreeGenerator_delete(IntPtr typeTreeGeneratorPtr)
+        public static int TypeTreeGenerator_del(IntPtr typeTreeGeneratorPtr)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -113,7 +113,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getLoadedDLLNames")]
-        public static IntPtr TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr)
+        public static IntPtr TypeTreeGenerator_getLoadedDLLNames(IntPtr typeTreeGeneratorPtr)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -130,7 +130,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesJson")]
-        public static int TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr)
+        public static int TypeTreeGenerator_generateTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr)
         {
             string? assemblyName = Marshal.PtrToStringUTF8(assemblyNamePtr);
             string? fullName = Marshal.PtrToStringUTF8(fullNamePtr);
@@ -160,7 +160,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesRaw")]
-        public static int TypeTreeGenerator_generateTypeTreeNodesRaw(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        public static int TypeTreeGenerator_generateTreeNodesRaw(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
         {
             string? assemblyName = Marshal.PtrToStringUTF8(assemblyNamePtr);
             string? fullName = Marshal.PtrToStringUTF8(fullNamePtr);
