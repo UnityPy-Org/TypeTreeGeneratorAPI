@@ -146,7 +146,8 @@ namespace TypeTreeGeneratorAPI
                 var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
-                    return -1;
+                    Marshal.WriteIntPtr(jsonAddr, IntPtr.Zero);
+                    return 0;
                 }
                 var json = TypeTreeNodeSerializer.ToJson(typeTreeNodes!);
                 Marshal.WriteIntPtr(jsonAddr, Marshal.StringToCoTaskMemUTF8(json));
@@ -175,7 +176,9 @@ namespace TypeTreeGeneratorAPI
                 var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
-                    return -1;
+                    Marshal.WriteIntPtr(arrAddrPtr, IntPtr.Zero);
+                    Marshal.WriteInt32(arrLengthPtr, 0);
+                    return 0;
                 }
                 var (arrayPtr, arrayLength) = TypeTreeNodeSerializer.ToRaw(typeTreeNodes!);
 
