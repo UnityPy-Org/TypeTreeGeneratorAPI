@@ -40,10 +40,10 @@ def init_dll(asm_path: Optional[str] = None):
         fp = asm_path or os.path.join(LOCAL, "TypeTreeGeneratorAPI.dll")
         dll = ctypes.WinDLL(fp)
     elif system == "Linux":
-        fp = asm_path or os.path.join(LOCAL, "TypeTreeGeneratorAPI.so")
+        fp = asm_path or os.path.join(LOCAL, "libTypeTreeGeneratorAPI.so")
         dll = ctypes.CDLL(fp)
     elif system == "Darwin":
-        fp = asm_path or os.path.join(LOCAL, "TypeTreeGeneratorAPI.dylib")
+        fp = asm_path or os.path.join(LOCAL, "libTypeTreeGeneratorAPI.dylib")
         dll = ctypes.CDLL(fp)
     else:
         raise NotImplementedError(f"TypeTreeGenerator doesn't support {system}!")
