@@ -80,12 +80,8 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
 
         private List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)
         {
-            //  from AssetStudioUtility.MonoBehaviourConverter
-            var m_Nodes = new List<TypeTreeNode>();
-            serializedTypeHelper.AddMonoBehaviour(m_Nodes, 0);
             var converter = new TypeDefinitionConverter(typeDef, serializedTypeHelper, 1);
-            m_Nodes.AddRange(converter.ConvertToTypeTreeNodes());
-            return m_Nodes;
+            return converter.ConvertToTypeTreeNodes();
         }
 
         private TypeDefinition? GetTypeDefinition(string assemblyName, string fullName)
