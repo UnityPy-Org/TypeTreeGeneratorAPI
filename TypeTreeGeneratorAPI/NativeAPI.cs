@@ -58,6 +58,7 @@ namespace TypeTreeGeneratorAPI
         }
 
 
+#if ENABLE_IL2CPP
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_loadIL2CPP")]
         unsafe public static int TypeTreeGenerator_loadIL2CPP(IntPtr typeTreeGeneratorPtr, byte* assemblyDataPtr, int assemblyDataLength, byte* metadataDataPtr, int metadataDataLength)
         {
@@ -90,6 +91,7 @@ namespace TypeTreeGeneratorAPI
                 return -1;
             }
         }
+#endif
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_del")]
         public static int TypeTreeGenerator_delete(IntPtr typeTreeGeneratorPtr)

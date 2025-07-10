@@ -17,6 +17,8 @@
 		<EnableAssetRipper>true</EnableAssetRipper>
 		<EnableAssetsTools>true</EnableAssetsTools>
 		<EnableAssetStudio>true</EnableAssetStudio>
+
+		<EnableIL2CPP>true</EnableIL2CPP>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(EnableAssetRipper)' == 'true'">
@@ -27,6 +29,9 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(EnableAssetStudio)' == 'true'">
 		<DefineConstants>$(DefineConstants);ENABLE_ASSET_STUDIO</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(EnableIL2CPP)' == 'true'">
+		<DefineConstants>$(DefineConstants);ENABLE_IL2CPP</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(EnableAssetRipper)' == 'false'">
@@ -41,8 +46,11 @@
 
 	<ItemGroup>
 		<PackageReference Include="AssetRipper.Primitives" Version="3.2.0" />
-		<PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-pre-release.19" />
 		<PackageReference Include="System.Text.Json" Version="9.0.2" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableIL2CPP)' == 'true'">
+		<PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-pre-release.19" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(EnableAssetRipper)' == 'true'">
@@ -50,12 +58,15 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(EnableAssetsTools)' == 'true'">
-		<PackageReference Include="AssetsTools.NET.Cpp2IL" Version="1.0.1-preview1" />
 		<PackageReference Include="AssetsTools.NET.MonoCecil" Version="1.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(EnableAssetsTools)' or '$(EnableAssetStudio)' == 'true'">
 		<PackageReference Include="Mono.Cecil" Version="0.11.6" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableIL2CPP)' == 'true' and '$(EnableAssetsTools)' == 'true'">
+		<PackageReference Include="AssetsTools.NET.Cpp2IL" Version="1.0.1-preview1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(EnableAssetStudio)' == 'true'">

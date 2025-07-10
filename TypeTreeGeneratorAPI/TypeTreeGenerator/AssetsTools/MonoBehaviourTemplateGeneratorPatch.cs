@@ -1,7 +1,9 @@
 ﻿using AssetsTools.NET;
-using AssetsTools.NET.Cpp2IL;
 using AssetsTools.NET.Extra;
+#if ENABLE_IL2CPP
+using AssetsTools.NET.Cpp2IL;
 using System.Reflection;
+#endif
 
 namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
 {
@@ -13,6 +15,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
         }
     }
 
+#if ENABLE_IL2CPP
     public class Cpp2IlTempGeneratorPatch : Cpp2IlTempGenerator, IMonoBehaviourTemplateGeneratorPatch
     {
         public Cpp2IlTempGeneratorPatch() : base("", "")
@@ -33,6 +36,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
             }
         }
     }
+#endif
 
     public class MonoCecilTempGeneratorPatch : MonoCecilTempGenerator, IMonoBehaviourTemplateGeneratorPatch
     {
