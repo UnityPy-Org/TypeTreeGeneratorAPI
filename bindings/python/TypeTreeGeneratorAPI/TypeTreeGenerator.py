@@ -56,13 +56,16 @@ def init_dll(asm_path: Optional[str] = None):
         ctypes.c_char_p,
         ctypes.c_int,
     ]
-    dll.TypeTreeGenerator_loadIL2CPP.argtypes = [
-        ctypes.c_void_p,
-        ctypes.c_char_p,
-        ctypes.c_int,
-        ctypes.c_char_p,
-        ctypes.c_int,
-    ]
+    try:
+        dll.TypeTreeGenerator_loadIL2CPP.argtypes = [
+            ctypes.c_void_p,
+            ctypes.c_char_p,
+            ctypes.c_int,
+            ctypes.c_char_p,
+            ctypes.c_int,
+        ]
+    except:
+        pass
     dll.TypeTreeGenerator_generateTreeNodesJson.argtypes = [
         ctypes.c_void_p,
         ctypes.c_char_p,
@@ -118,6 +121,8 @@ class TypeTreeGenerator:
         assert not DLL.TypeTreeGenerator_loadDLL(self.ptr, dll, len(dll)), "failed to load dll"
 
     def load_il2cpp(self, il2cpp: bytes, metadata: bytes):
+        if not hasattr(DLL, "TypeTreeGenerator_loadIL2CPP"):
+            raise Exception("IL2CPP support is not enabled in TypeTreeGeneratorAPI")
         assert not DLL.TypeTreeGenerator_loadIL2CPP(self.ptr, il2cpp, len(il2cpp), metadata, len(metadata)), (
             "failed to load il2cpp"
         )
