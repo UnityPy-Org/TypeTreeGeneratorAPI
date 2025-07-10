@@ -1,27 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-	  <TargetFramework>net9.0</TargetFramework>
-	  <ImplicitUsings>enable</ImplicitUsings>
-	  <Nullable>enable</Nullable>
-	  <PublishAot>true</PublishAot>
-	  <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
-	  <InvariantGlobalization>true</InvariantGlobalization>
-	  <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  
-	  <TargetName>$(MSBuildProjectName)</TargetName>
-	  <TargetName Condition="'$(OS)' != 'Windows_NT'">lib$(TargetName)</TargetName>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<PublishAot>true</PublishAot>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
-  <ItemGroup>
-    <PackageReference Include="AssetRipper.Primitives" Version="3.2.0" />
-    <PackageReference Include="AssetsTools.NET.Cpp2IL" Version="1.0.1-preview1" />
-    <PackageReference Include="AssetsTools.NET.MonoCecil" Version="1.0.1" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
-    <PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-pre-release.19" />
-	<PackageReference Include="System.Text.Json" Version="9.0.2" />
-  </ItemGroup>
-	
+		<TargetName>$(MSBuildProjectName)</TargetName>
+		<TargetName Condition="'$(OS)' != 'Windows_NT'">lib$(TargetName)</TargetName>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AssetRipper.Primitives" Version="3.2.0" />
+		<PackageReference Include="AssetsTools.NET.Cpp2IL" Version="1.0.1-preview1" />
+		<PackageReference Include="AssetsTools.NET.MonoCecil" Version="1.0.1" />
+		<PackageReference Include="Mono.Cecil" Version="0.11.6" />
+		<PackageReference Include="Samboy063.Cpp2IL.Core" Version="2022.1.0-pre-release.19" />
+		<PackageReference Include="System.Text.Json" Version="9.0.2" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\CecilUtils.cs">
 			<Link>TypeTreeGenerator\AssetStudio\Unity.CecilTools\CecilUtils.cs</Link>
@@ -39,15 +39,15 @@
 			<Link>TypeTreeGenerator\AssetStudio\Unity.SerializationLogic\UnityEngineTypePredicates.cs</Link>
 		</Compile>
 	</ItemGroup>
-	
+
 	<ItemGroup>
-	  <ProjectReference Include="..\AssetRipper\Source\AssetRipper.SerializationLogic\AssetRipper.SerializationLogic.csproj" />
+		<ProjectReference Include="..\AssetRipper\Source\AssetRipper.SerializationLogic\AssetRipper.SerializationLogic.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\MethodDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\ResolutionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-	  <Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeReferenceExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\MethodDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\ResolutionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
+		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeReferenceExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 </Project>
