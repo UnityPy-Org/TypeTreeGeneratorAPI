@@ -9,15 +9,6 @@
             this.version = version;
         }
 
-        public void AddMonoBehaviour(List<TypeTreeNode> nodes, int indent)
-        {
-            nodes.Add(new TypeTreeNode("MonoBehaviour", "Base", indent, false));
-            AddPPtr(nodes, "GameObject", "m_GameObject", indent + 1);
-            nodes.Add(new TypeTreeNode("UInt8", "m_Enabled", indent + 1, true));
-            AddPPtr(nodes, "MonoScript", "m_Script", indent + 1);
-            AddString(nodes, "m_Name", indent + 1);
-        }
-
         public void AddPPtr(List<TypeTreeNode> nodes, string type, string name, int indent)
         {
             nodes.Add(new TypeTreeNode($"PPtr<{type}>", name, indent, false));

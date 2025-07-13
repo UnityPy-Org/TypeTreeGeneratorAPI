@@ -26,8 +26,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
             var nameSpace = lastDot == -1 ? "" : fullName.Substring(0, lastDot);
             var className = lastDot == -1 ? fullName : fullName.Substring(lastDot + 1);
 
+            var assemblyNameNormalized = assemblyName.EndsWith(".dll") ? assemblyName[..^".dll".Length] : assemblyName;
 
-            var type = FindType(assemblyName, nameSpace, className);
+            var type = FindType(assemblyNameNormalized, nameSpace, className);
             if (type == null)
             {
                 return null;
