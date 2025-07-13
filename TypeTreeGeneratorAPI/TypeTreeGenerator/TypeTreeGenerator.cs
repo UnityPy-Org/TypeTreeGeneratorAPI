@@ -28,6 +28,8 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
                 LoadDll(dllStream);
             }
         }
+        
+#if ENABLE_IL2CPP
         public virtual void LoadIl2Cpp(byte[] assemblyData, byte[] metadataData)
         {
             Il2CppHandler.Initialize(assemblyData, metadataData, unityVersionString);
@@ -53,5 +55,6 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
                 }
             }
         }
+#endif
     }
 }
