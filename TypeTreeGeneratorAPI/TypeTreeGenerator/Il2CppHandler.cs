@@ -1,10 +1,9 @@
-﻿using AssetRipper.Primitives;
+﻿#if ENABLE_IL2CPP
+using AssetRipper.Primitives;
 using Cpp2IL.Core;
 using Cpp2IL.Core.Api;
-using Cpp2IL.Core.InstructionSets;
 using Cpp2IL.Core.OutputFormats;
 using Cpp2IL.Core.ProcessingLayers;
-using LibCpp2IL;
 
 namespace TypeTreeGeneratorAPI.TypeTreeGenerator
 {
@@ -54,43 +53,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
             return assemblyResolver.assemblyDefinitions;
         }
 
-        public class AssemblyResolver : AsmResolver.DotNet.IAssemblyResolver
-        {
-            public Dictionary<string, AsmResolver.DotNet.AssemblyDefinition> assemblyDefinitions = new();
-
-            public void AddToCache(string name, AsmResolver.DotNet.AssemblyDefinition definition)
-            {
-                assemblyDefinitions[name] = definition;
-            }
-
-            public void AddToCache(AsmResolver.DotNet.AssemblyDescriptor descriptor, AsmResolver.DotNet.AssemblyDefinition definition)
-            {
-                assemblyDefinitions[descriptor.Name] = definition;
-            }
-
-            public void ClearCache()
-            {
-                assemblyDefinitions.Clear();
-            }
-
-            public bool HasCached(AsmResolver.DotNet.AssemblyDescriptor descriptor)
-            {
-                return assemblyDefinitions.ContainsKey(descriptor.Name);
-            }
-
-            public bool RemoveFromCache(AsmResolver.DotNet.AssemblyDescriptor descriptor)
-            {
-                return assemblyDefinitions.Remove(descriptor.Name);
-            }
-
-            public AsmResolver.DotNet.AssemblyDefinition? Resolve(AsmResolver.DotNet.AssemblyDescriptor assembly)
-            {
-                if (assemblyDefinitions.TryGetValue(assembly.Name, out var assemblyDef))
-                {
-                    return assemblyDef;
-                }
-                return null;
-            }
-        }
+      
     }
 }
+#endif

@@ -2,7 +2,6 @@
 using AsmResolver.PE.File;
 using AssetRipper.Primitives;
 using AssetRipper.SerializationLogic;
-using Cpp2IL.Core.Extensions;
 
 namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
 {
@@ -10,7 +9,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
     {
         protected Dictionary<string, AssemblyDefinition> assemblyDefinitions => assemblyResolver.assemblyDefinitions;
         private Dictionary<ITypeDefOrRef, SerializableType> monoTypeCache = new();
-        private Il2CppHandler.AssemblyResolver assemblyResolver = new();
+        private AssemblyResolver assemblyResolver = new();
         private SerializableTypeConverter typeConverter;
 
         protected override bool supportsIl2Cpp => true;
@@ -66,7 +65,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
 
         public override void LoadDll(Stream dllStream)
         {
-            LoadDll(dllStream.ReadBytes());
+            using var ms = new MemoryStream();
+            dllStream.CopyTo(ms);
+            LoadDll(ms.ToArray());
         }
 
         public override void LoadDll(byte[] dllData)
@@ -76,6 +77,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
             loadAssembly(assembly);
         }
 
+#if ENABLE_IL2CPP
         public override void LoadIl2Cpp(byte[] assemblyData, byte[] metadataData)
         {
             base.LoadIl2Cpp(assemblyData, metadataData);
@@ -84,6 +86,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
                 loadAssembly(assembly);
             }
         }
+#endif
 
         private void loadAssembly(AssemblyDefinition assembly)
         {
