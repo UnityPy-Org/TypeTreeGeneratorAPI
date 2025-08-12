@@ -7,7 +7,7 @@ namespace TypeTreeGeneratorAPI
     public static class NativeAPI
     {
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_init")]
-        public static IntPtr TypeTreeGenerator_create(IntPtr unityVersionPtr, IntPtr generatorName)
+        public static IntPtr TypeTreeGenerator_init(IntPtr unityVersionPtr, IntPtr generatorName)
         {
             string? unityVersion = Marshal.PtrToStringUTF8(unityVersionPtr);
             string? generatorNameStr = Marshal.PtrToStringUTF8(generatorName);
@@ -94,7 +94,7 @@ namespace TypeTreeGeneratorAPI
 #endif
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_del")]
-        public static int TypeTreeGenerator_delete(IntPtr typeTreeGeneratorPtr)
+        public static int TypeTreeGenerator_del(IntPtr typeTreeGeneratorPtr)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -115,7 +115,7 @@ namespace TypeTreeGeneratorAPI
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getLoadedDLLNames")]
-        public static IntPtr TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr)
+        public static IntPtr TypeTreeGenerator_getLoadedDLLNames(IntPtr typeTreeGeneratorPtr)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -130,16 +130,23 @@ namespace TypeTreeGeneratorAPI
             var json = string.Join(",", names.Select(name => $"\"{name}\""));
             return Marshal.StringToCoTaskMemUTF8($"[{json}]");
         }
+        
+        public enum GenerateTreeNodesResult
+        {
+            Ok = 0,
+            Error = -1,
+            NotFound = -2,
+        }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesJson")]
-        public static int TypeTreeGenerator_generateTypeTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr)
+        public static GenerateTreeNodesResult TypeTreeGenerator_generateTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr)
         {
             string? assemblyName = Marshal.PtrToStringUTF8(assemblyNamePtr);
             string? fullName = Marshal.PtrToStringUTF8(fullNamePtr);
 
             if (typeTreeGeneratorPtr == IntPtr.Zero || assemblyName == null || fullName == null)
             {
-                return -1;
+                return GenerateTreeNodesResult.Error;
             }
             try
             {
@@ -148,7 +155,8 @@ namespace TypeTreeGeneratorAPI
                 var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
-                    return -1;
+                    Marshal.WriteIntPtr(jsonAddr, IntPtr.Zero);
+                    return GenerateTreeNodesResult.NotFound;
                 }
                 var json = TypeTreeNodeSerializer.ToJson(typeTreeNodes!);
                 Marshal.WriteIntPtr(jsonAddr, Marshal.StringToCoTaskMemUTF8(json));
@@ -157,19 +165,19 @@ namespace TypeTreeGeneratorAPI
             catch (Exception ex)
             {
                 Console.WriteLine($"Error generating tree nodes:\n{ex.Message}");
-                return -1;
+                return GenerateTreeNodesResult.Error;
             }
         }
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesRaw")]
-        public static int TypeTreeGenerator_generateTypeTreeNodesRaw(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        public static GenerateTreeNodesResult TypeTreeGenerator_generateTreeNodesRaw(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
         {
             string? assemblyName = Marshal.PtrToStringUTF8(assemblyNamePtr);
             string? fullName = Marshal.PtrToStringUTF8(fullNamePtr);
 
             if (typeTreeGeneratorPtr == IntPtr.Zero || assemblyName == null || fullName == null)
             {
-                return -1;
+                return GenerateTreeNodesResult.Error;
             }
             try
             {
@@ -177,19 +185,21 @@ namespace TypeTreeGeneratorAPI
                 var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
-                    return -1;
+                    Marshal.WriteIntPtr(arrAddrPtr, IntPtr.Zero);
+                    Marshal.WriteInt32(arrLengthPtr, 0);
+                    return GenerateTreeNodesResult.NotFound;
                 }
                 var (arrayPtr, arrayLength) = TypeTreeNodeSerializer.ToRaw(typeTreeNodes!);
 
                 Marshal.WriteIntPtr(arrAddrPtr, arrayPtr);
                 Marshal.WriteInt32(arrLengthPtr, arrayLength);
 
-                return 0;
+                return GenerateTreeNodesResult.Ok;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error generating tree nodes:\n{ex.Message}");
-                return -1;
+                return GenerateTreeNodesResult.Error;
             }
         }
 
