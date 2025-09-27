@@ -45,7 +45,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
 
         public override List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName)
         {
-            var typeDef = GetTypeDefinition(assemblyName, fullName);
+            var assemblyNameNormalized = assemblyName.EndsWith(".dll") ? assemblyName : $"{assemblyName}.dll";
+            
+            var typeDef = GetTypeDefinition(assemblyNameNormalized, fullName);
             if (typeDef != null)
             {
                 return GenerateTreeNodes(typeDef);
@@ -55,12 +57,8 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
 
         private List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)
         {
-            //  from AssetStudioUtility.MonoBehaviourConverter
-            var m_Nodes = new List<TypeTreeNode>();
-            serializedTypeHelper.AddMonoBehaviour(m_Nodes, 0);
             var converter = new TypeDefinitionConverter(typeDef, serializedTypeHelper, 1);
-            m_Nodes.AddRange(converter.ConvertToTypeTreeNodes());
-            return m_Nodes;
+            return converter.ConvertToTypeTreeNodes();
         }
 
         private TypeDefinition? GetTypeDefinition(string assemblyName, string fullName)

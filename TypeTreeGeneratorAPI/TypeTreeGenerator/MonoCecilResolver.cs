@@ -1,4 +1,5 @@
-﻿using Mono.Cecil;
+﻿#if ENABLE_ASSET_STUDIO || ENABLE_ASSETS_TOOLS
+using Mono.Cecil;
 using AssemblyDefinition = Mono.Cecil.AssemblyDefinition;
 
 namespace TypeTreeGeneratorAPI.TypeTreeGenerator
@@ -59,3 +60,4 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
         }
     }
 }
+#endif
