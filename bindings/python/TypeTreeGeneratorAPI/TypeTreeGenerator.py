@@ -158,17 +158,17 @@ class TypeTreeGenerator:
         DLL.TypeTreeGenerator_freeTreeNodesRaw(nodes_ptr, nodes_count)
         return nodes
 
-    def get_monobehavior_definitions(self) -> List[Tuple[str, str]]:
+    def get_class_definitions(self) -> List[Tuple[str, str]]:
         names_ptr = ctypes.POINTER(ctypes.c_char_p)()
         names_cnt = ctypes.c_int()
-        assert not DLL.TypeTreeGenerator_getMonoBehaviorDefinitions(
+        assert not DLL.TypeTreeGenerator_getClassDefinitions(
             self.ptr,
             ctypes.byref(names_ptr),
             ctypes.byref(names_cnt),
         ), "failed to get module exports"
         ptr_array = ctypes.cast(names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value))
         names = [name.decode("utf-8") for name in ptr_array.contents]
-        DLL.TypeTreeGenerator_freeMonoBehaviorDefinitions(names_ptr, names_cnt)
+        DLL.TypeTreeGenerator_freeClassDefinitions(names_ptr, names_cnt)
         return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
 
     def get_loaded_dll_names(self) -> List[str]:

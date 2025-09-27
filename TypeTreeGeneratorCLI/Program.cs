@@ -59,7 +59,7 @@ class Program
                 handle.Instance.LoadIl2Cpp(assembly, metadata);
             }
 
-            foreach (var (assemblyName, fullName) in handle.Instance.GetMonoBehaviourDefinitions())
+            foreach (var (assemblyName, fullName) in handle.Instance.GetClassDefinitions())
             {
                 var nodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName)!;
                 if (nodes == null || nodes.Count == 0)

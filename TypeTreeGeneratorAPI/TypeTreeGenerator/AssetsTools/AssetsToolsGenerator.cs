@@ -96,15 +96,15 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
             cpp2IlGenerator.SetInitialized(true);
         }
 
-        public override List<(string, string)> GetMonoBehaviourDefinitions()
+        public override List<(string, string)> GetClassDefinitions()
         {
             if (monoLoaded)
             {
-                return GetMonoBehaviourDefinitions_Mono();
+                return GetClassDefinitions_Mono();
             }
             else if (LibCpp2IlMain.TheMetadata != null)
             {
-                return GetMonoBehaviourDefinitions_Il2Cpp();
+                return GetClassDefinitions_Il2Cpp();
             }
             else
             {
@@ -113,29 +113,26 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
             }
         }
 
-        public List<(string, string)> GetMonoBehaviourDefinitions_Mono()
+        public List<(string, string)> GetClassDefinitions_Mono()
         {
-            var monoBehaviourDefs = new List<(string, string)>();
+            var typedefs = new List<(string, string)>();
             foreach (var (asmName, asmDef) in monoCecilGenerator.loadedAssemblies)
             {
                 foreach (var type in asmDef.MainModule.Types)
                 {
-                    if (IsMonoBehaviour(type))
-                    {
-                        monoBehaviourDefs.Add((asmName, type.FullName));
-                    }
+                    typedefs.Add((asmName, type.FullName));
                 }
             }
-            return monoBehaviourDefs;
+            return typedefs;
         }
 
-        public List<(string, string)> GetMonoBehaviourDefinitions_Il2Cpp()
+        public List<(string, string)> GetClassDefinitions_Il2Cpp()
         {
-            var monoBehaviourDefs = new List<(string, string)>();
+            var typedefs = new List<(string, string)>();
             if (LibCpp2IlMain.TheMetadata == null)
             {
                 // TODO - err
-                return monoBehaviourDefs;
+                return typedefs;
             }
             foreach (var asmDef in LibCpp2IlMain.TheMetadata.AssemblyDefinitions)
             {
@@ -145,41 +142,10 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
                 {
                     if (asmType.FullName is null)
                         continue;
-                    var baseType = asmType.BaseType?.baseType;
-                    while (baseType != null)
-                    {
-                        if (baseType.FullName == "UnityEngine.MonoBehaviour")
-                        {
-                            monoBehaviourDefs.Add((asmDef.AssemblyName.Name, asmType.FullName));
-                            break;
-                        }
-                        baseType = baseType.BaseType?.baseType;
-                    }
+                     typedefs.Add((asmDef.AssemblyName.Name, asmType.FullName));
                 }
             }
-            return monoBehaviourDefs;
-        }
-
-        private static bool IsMonoBehaviour(TypeDefinition type)
-        {
-            while (type != null)
-            {
-                if (type.BaseType == null)
-                    return false;
-                if (type.BaseType.FullName == "UnityEngine.MonoBehaviour")
-                    return true;
-                try
-                {
-                    // Resolve the base type to continue up the hierarchy
-                    type = type.BaseType.Resolve();
-                }
-                catch
-                {
-                    // If we can't resolve, break out
-                    break;
-                }
-            }
-            return false;
+            return typedefs;
         }
 
         public override List<string> GetAssemblyNames()
