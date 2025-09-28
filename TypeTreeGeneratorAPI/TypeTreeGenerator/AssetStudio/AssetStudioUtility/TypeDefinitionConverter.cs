@@ -228,7 +228,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                         primitiveName = "float";
                         break;
                     case "IntPtr":
-                        primitiveName = "SIntPtr";
+                        primitiveName = "IntPtr";
                         break;
                     default:
                         throw new NotSupportedException();
