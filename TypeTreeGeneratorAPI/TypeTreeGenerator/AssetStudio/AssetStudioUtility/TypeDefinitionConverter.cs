@@ -50,13 +50,6 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                 baseTypes.Push(lastBaseType);
                 lastBaseType = lastBaseType.Resolve().BaseType;
             }
-            // XXX: These aren't added by baseTypes. Curiously both of these share the same node layouts?
-            //      C# code doesn't suggest that, however, but reading typetree with these prepended is infact correct.
-            if (
-                TypeDef.BaseType?.Resolve().FullName == UnityEngineTypePredicates.MonoBehaviour ||
-                TypeDef.BaseType?.Resolve().FullName == UnityEngineTypePredicates.ScriptableObject               
-            )            
-                Helper.AddMonoBehaviour(nodes, 0);                           
             while (baseTypes.Count > 0)
             {
                 var typeReference = baseTypes.Pop();
