@@ -150,7 +150,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
         }
 
 #if ENABLE_IL2CPP
-        public List<(string, string)> GetMonoBehaviourDefinitions_Il2Cpp()
+        public List<(string, string)> GetClassDefinitions_Il2Cpp()
         {
             var typedefs = new List<(string, string)>();
             if (LibCpp2IlMain.TheMetadata == null)
@@ -169,8 +169,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetsTools
                      typedefs.Add((asmDef.AssemblyName.Name, asmType.FullName));
                 }
             }
-            return monoBehaviourDefs;
+            return typedefs;
         }
+#endif
 
         private static bool IsMonoBehaviour(TypeDefinition type)
         {

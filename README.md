@@ -24,6 +24,6 @@ dotnet restore
 dotnet publish -c Release -r win-x64
 # Build Python bindings
 cd bindings\python
-# Install as an editable package
-pip install -e .
+# Install
+pip install .
 ```

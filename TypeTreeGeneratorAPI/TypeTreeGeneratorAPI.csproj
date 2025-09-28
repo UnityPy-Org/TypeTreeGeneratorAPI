@@ -68,27 +68,4 @@
 	<ItemGroup Condition="'$(EnableIL2CPP)' == 'true' and '$(EnableAssetsTools)' == 'true'">
 		<PackageReference Include="AssetsTools.NET.Cpp2IL" Version="1.0.1-preview1" />
 	</ItemGroup>
-
-	<ItemGroup Condition="'$(EnableAssetStudio)' == 'true'">
-		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\CecilUtils.cs">
-			<Link>TypeTreeGenerator\AssetStudio\Unity.CecilTools\CecilUtils.cs</Link>
-		</Compile>
-		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\ElementType.cs">
-			<Link>TypeTreeGenerator\AssetStudio\Unity.CecilTools\ElementType.cs</Link>
-		</Compile>
-		<Compile Include="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\**\*.cs">
-			<Link>Backend\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)</Link>
-		</Compile>
-		<Compile Include="..\UnityCsReference\Tools\Unity.SerializationLogic\UnitySerializationLogic.cs">
-			<Link>TypeTreeGenerator\AssetStudio\Unity.SerializationLogic\UnitySerializationLogic.cs</Link>
-		</Compile>
-		<Compile Include="..\UnityCsReference\Tools\Unity.SerializationLogic\UnityEngineTypePredicates.cs">
-			<Link>TypeTreeGenerator\AssetStudio\Unity.SerializationLogic\UnityEngineTypePredicates.cs</Link>
-		</Compile>
-
-		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\MethodDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\ResolutionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeDefinitionExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-		<Compile Update="..\UnityCsReference\Tools\Unity.CecilTools\Extensions\TypeReferenceExtensions.cs" Link="TypeTreeGenerator\AssetStudio\Unity.CecilTools\Extensions\%(RecursiveDir)%(Filename)%(Extension)" />
-	</ItemGroup>
 </Project>

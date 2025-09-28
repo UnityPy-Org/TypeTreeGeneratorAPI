@@ -261,6 +261,14 @@
             nodes.Add(new TypeTreeNode("float", "sh[26]", indent + 1, false));
         }
 
+        public void AddMonoBehaviour(List<TypeTreeNode> nodes, int indent)
+        {
+            nodes.Add(new TypeTreeNode("MonoBehaviour", "Base", indent, false));
+            AddPPtr(nodes, "GameObject", "m_GameObject", indent + 1);
+            nodes.Add(new TypeTreeNode("UInt8", "m_Enabled", indent + 1, true));
+            AddPPtr(nodes, "MonoScript", "m_Script", indent + 1);
+            AddString(nodes, "m_Name", indent + 1);
+        }
         public void AddPropertyName(List<TypeTreeNode> nodes, string name, int indent)
         {
             nodes.Add(new TypeTreeNode("PropertyName", name, indent, false));

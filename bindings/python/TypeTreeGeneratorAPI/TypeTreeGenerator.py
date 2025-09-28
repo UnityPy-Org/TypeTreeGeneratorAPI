@@ -83,12 +83,12 @@ def init_dll(asm_path: Optional[str] = None):
         ctypes.POINTER(TypeTreeNodeNative),
         ctypes.c_int,
     ]
-    dll.TypeTreeGenerator_getMonoBehaviorDefinitions.argtypes = [
+    dll.TypeTreeGenerator_getClassDefinitions.argtypes = [
         ctypes.c_void_p,
         ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p)),
         ctypes.POINTER(ctypes.c_int),
     ]
-    dll.TypeTreeGenerator_freeMonoBehaviorDefinitions.argtypes = [
+    dll.TypeTreeGenerator_freeClassDefinitions.argtypes = [
         ctypes.POINTER(ctypes.c_char_p),
         ctypes.c_int,
     ]
