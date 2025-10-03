@@ -40,9 +40,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
             return typeConverter.FromSerializableType(monoType);
         }
 
-        public override List<(string, string)> GetMonoBehaviourDefinitions()
+        public override List<(string, string)> GetClassDefinitions()
         {
-            var monoBehaviourDefinitions = new List<(string, string)>();
+            var typedefs = new List<(string, string)>();
             foreach (var assembly in assemblyDefinitions.Values)
             {
                 if (assembly.Name is null)
@@ -53,14 +53,14 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
                 {
                     foreach (var type in module.TopLevelTypes)
                     {
-                        if (type.IsClass && type.BaseType?.FullName == "UnityEngine.MonoBehaviour")
+                        if (type.IsClass)
                         {
-                            monoBehaviourDefinitions.Add((assembly.Name, type.FullName));
+                            typedefs.Add((assembly.Name, type.FullName));
                         }
                     }
                 }
             }
-            return monoBehaviourDefinitions;
+            return typedefs;
         }
 
         public override void LoadDll(Stream dllStream)

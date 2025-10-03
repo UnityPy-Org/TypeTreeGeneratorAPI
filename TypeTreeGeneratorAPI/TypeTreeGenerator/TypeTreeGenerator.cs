@@ -14,7 +14,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
             unityVersion = UnityVersion.Parse(unityVersionString);
         }
 
-        abstract public List<(string, string)> GetMonoBehaviourDefinitions();
+        abstract public List<(string, string)> GetClassDefinitions();
         abstract public List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName);
 
         abstract public List<string> GetAssemblyNames();

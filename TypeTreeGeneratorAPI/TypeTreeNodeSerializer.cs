@@ -5,19 +5,34 @@ using TypeTreeGeneratorAPI.TypeTreeGenerator;
 
 [JsonSerializable(typeof(TypeTreeNode))]
 [JsonSerializable(typeof(List<TypeTreeNode>))] // For collections
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(Dictionary<string, List<TypeTreeNode>>))]
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1050:Declare types in namespaces", Justification = "<Pending>")]
-public partial class MyJsonContext : JsonSerializerContext
+public partial class TypeTreeNodeSerializerJSONContext : JsonSerializerContext
 {
     // Source generator will auto-implement this partial class
 }
-
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(TypeTreeNode))]
+[JsonSerializable(typeof(List<TypeTreeNode>))] // For collections
+[JsonSerializable(typeof(Dictionary<string, List<TypeTreeNode>>))]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1050:Declare types in namespaces", Justification = "<Pending>")]
+public partial class TypeTreeNodeSerializerWithIndentJSONContext : JsonSerializerContext
+{
+    // Source generator will auto-implement this partial class
+}
 namespace TypeTreeGeneratorAPI
 {
     public class TypeTreeNodeSerializer
     {
         public static string ToJson(List<TypeTreeNode> nodes)
         {
-            return JsonSerializer.Serialize(nodes, MyJsonContext.Default.ListTypeTreeNode);
+            return JsonSerializer.Serialize(nodes, TypeTreeNodeSerializerJSONContext.Default.ListTypeTreeNode);
+        }
+
+        public static string ToJson(Dictionary<string, List<TypeTreeNode>> nodes)
+        {
+            return JsonSerializer.Serialize(nodes, TypeTreeNodeSerializerWithIndentJSONContext.Default.DictionaryStringListTypeTreeNode);
         }
 
         public static (IntPtr, int) ToRaw(List<TypeTreeNode> nodes)

@@ -30,20 +30,17 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
             moduleDic.Add(assembly.MainModule.Name, assembly.MainModule);
         }
 
-        public override List<(string, string)> GetMonoBehaviourDefinitions()
+        public override List<(string, string)> GetClassDefinitions()
         {
-            var monoBehaviourDefs = new List<(string, string)>();
+            var typedefs = new List<(string, string)>();
             foreach (var (moduleName, module) in moduleDic)
             {
                 foreach (var type in module.Types)
                 {
-                    if (IsMonoBehaviour(type))
-                    {
-                        monoBehaviourDefs.Add((moduleName, type.FullName));
-                    }
+                    typedefs.Add((moduleName, type.FullName));
                 }
             }
-            return monoBehaviourDefs;
+            return typedefs;
         }
 
         public override List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName)
@@ -56,28 +53,6 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
                 return GenerateTreeNodes(typeDef);
             }
             return null;
-        }
-
-        private static bool IsMonoBehaviour(TypeDefinition type)
-        {
-            while (type != null)
-            {
-                if (type.BaseType == null)
-                    return false;
-                if (type.BaseType.FullName == "UnityEngine.MonoBehaviour")
-                    return true;
-                try
-                {
-                    // Resolve the base type to continue up the hierarchy
-                    type = type.BaseType.Resolve();
-                }
-                catch
-                {
-                    // If we can't resolve, break out
-                    break;
-                }
-            }
-            return false;
         }
 
         private List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)

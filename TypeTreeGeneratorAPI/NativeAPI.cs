@@ -218,8 +218,8 @@ namespace TypeTreeGeneratorAPI
             return 0;
         }
 
-        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getMonoBehaviorDefinitions")]
-        public static int TypeTreeGenerator_getMonoBehaviorDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getClassDefinitions")]
+        public static int TypeTreeGenerator_getClassDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -229,7 +229,7 @@ namespace TypeTreeGeneratorAPI
             {
                 var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
 
-                var typeNames = handle.Instance.GetMonoBehaviourDefinitions();
+                var typeNames = handle.Instance.GetClassDefinitions();
 
                 var arrayLength = typeNames.Count;
                 var arrayPtr = Marshal.AllocCoTaskMem(Marshal.SizeOf<IntPtr>() * arrayLength * 2);
@@ -254,8 +254,8 @@ namespace TypeTreeGeneratorAPI
         }
 
 
-        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_freeMonoBehaviorDefinitions")]
-        public static int TypeTreeGenerator_freeMonoBehaviorDefinitions(IntPtr arrAddr, int arrLength)
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_freeClassDefinitions")]
+        public static int TypeTreeGenerator_freeClassDefinitions(IntPtr arrAddr, int arrLength)
         {
             if (arrAddr == IntPtr.Zero)
             {

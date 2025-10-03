@@ -1,28 +1,43 @@
 ﻿using Mono.Cecil;
 using Unity.CecilTools;
+using Unity.CecilTools.Extensions;
 using Unity.SerializationLogic;
 
 namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
 {
     public class TypeDefinitionConverter
     {
+        // Prevent SO with recursive definitions (e.g. List of self)
+        private const int kMaximumConversionDepth = 128;
+
         private readonly TypeDefinition TypeDef;
         private readonly TypeResolver TypeResolver;
         private readonly SerializedTypeHelper Helper;
         private readonly int Indent;
+                
 
         public TypeDefinitionConverter(TypeDefinition typeDef, SerializedTypeHelper helper, int indent)
         {
             TypeDef = typeDef;
             TypeResolver = new TypeResolver(null);
             Helper = helper;
-            Indent = indent;
+            Indent = indent;            
         }
-
-        public List<TypeTreeNode> ConvertToTypeTreeNodes()
+        private IEnumerable<FieldDefinition> FilteredFields()
         {
+            return TypeDef.Fields.Where(f =>               
+                UnitySerializationLogic.IsSupportedCollection(f.FieldType) ||
+                !f.FieldType.IsGenericInstance ||
+                UnitySerializationLogic.ShouldImplementIDeserializable(f.FieldType.Resolve()));
+        }
+        public List<TypeTreeNode> ConvertToTypeTreeNodes(int depth = 0)
+        {            
+            if (depth >= kMaximumConversionDepth)
+            {                
+                Console.WriteLine($"Maximum conversion depth ({kMaximumConversionDepth}) reached, terminating resolve of {TypeDef.FullName}");
+                return new();
+            }
             var nodes = new List<TypeTreeNode>();
-
             var baseTypes = new Stack<TypeReference>();
             var lastBaseType = TypeDef.BaseType;
             while (!UnitySerializationLogic.IsNonSerialized(lastBaseType))
@@ -43,7 +58,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                 {
                     if (!IsHiddenByParentClass(baseTypes, fieldDefinition, TypeDef))
                     {
-                        nodes.AddRange(ProcessingFieldRef(ResolveGenericFieldReference(fieldDefinition)));
+                        nodes.AddRange(ProcessingFieldRef(ResolveGenericFieldReference(fieldDefinition), depth + 1));
                     }
                 }
 
@@ -53,11 +68,11 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                     TypeResolver.Remove(genericInstanceType);
                 }
             }
-            foreach (var field in FilteredFields())
-            {
-                nodes.AddRange(ProcessingFieldRef(field));
+            foreach (var f in FilteredFields())
+            { 
+                if (WillUnitySerialize(f))
+                    nodes.AddRange(ProcessingFieldRef(f, depth + 1));
             }
-
             return nodes;
         }
 
@@ -81,22 +96,17 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
             }
             catch (Exception ex)
             {
-                throw new Exception(string.Format("Exception while processing {0} {1}, error {2}", fieldDefinition.FieldType.FullName, fieldDefinition.FullName, ex.Message));
+                // throw new Exception(string.Format("Exception while processing {0} {1}, error {2}", fieldDefinition.FieldType.FullName, fieldDefinition.FullName, ex.Message));
+                // Templated types may fail to resolve, just skip them
+                return false;
             }
         }
 
         private static bool IsHiddenByParentClass(IEnumerable<TypeReference> parentTypes, FieldDefinition fieldDefinition, TypeDefinition processingType)
         {
             return processingType.Fields.Any(f => f.Name == fieldDefinition.Name) || parentTypes.Any(t => t.Resolve().Fields.Any(f => f.Name == fieldDefinition.Name));
-        }
+        }        
 
-        private IEnumerable<FieldDefinition> FilteredFields()
-        {
-            return TypeDef.Fields.Where(WillUnitySerialize).Where(f =>
-                UnitySerializationLogic.IsSupportedCollection(f.FieldType) ||
-                !f.FieldType.IsGenericInstance ||
-                UnitySerializationLogic.ShouldImplementIDeserializable(f.FieldType.Resolve()));
-        }
 
         private FieldReference ResolveGenericFieldReference(FieldReference fieldRef)
         {
@@ -119,10 +129,10 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
             return TypeResolver.Resolve(genericInstanceType);
         }
 
-        private List<TypeTreeNode> ProcessingFieldRef(FieldReference fieldDef)
+        private List<TypeTreeNode> ProcessingFieldRef(FieldReference fieldDef, int depth)
         {
             var typeRef = TypeResolver.Resolve(fieldDef.FieldType);
-            return TypeRefToTypeTreeNodes(typeRef, fieldDef.Name, Indent, false);
+            return TypeRefToTypeTreeNodes(typeRef, fieldDef.Name, Indent, false, depth);
         }
 
         private static bool IsStruct(TypeReference typeRef)
@@ -156,7 +166,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
             return typeRef.FullName == "System.String";
         }
 
-        private List<TypeTreeNode> TypeRefToTypeTreeNodes(TypeReference typeRef, string name, int indent, bool isElement)
+        private List<TypeTreeNode> TypeRefToTypeTreeNodes(TypeReference typeRef, string name, int indent, bool isElement, int depth)
         {
             var align = false;
 
@@ -210,6 +220,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                     case "Single":
                         primitiveName = "float";
                         break;
+                    case "IntPtr":
+                        primitiveName = "IntPtr";
+                        break;
                     default:
                         throw new NotSupportedException();
                 }
@@ -232,14 +245,14 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                 var elementRef = CecilUtils.ElementTypeOfCollection(typeRef);
                 nodes.Add(new TypeTreeNode(typeRef.Name, name, indent, align));
                 Helper.AddArray(nodes, indent + 1);
-                nodes.AddRange(TypeRefToTypeTreeNodes(elementRef, "data", indent + 2, true));
+                nodes.AddRange(TypeRefToTypeTreeNodes(elementRef, "data", indent + 2, true, depth + 1));
             }
             else if (typeRef.IsArray)
             {
                 var elementRef = typeRef.GetElementType();
                 nodes.Add(new TypeTreeNode(typeRef.Name, name, indent, align));
                 Helper.AddArray(nodes, indent + 1);
-                nodes.AddRange(TypeRefToTypeTreeNodes(elementRef, "data", indent + 2, true));
+                nodes.AddRange(TypeRefToTypeTreeNodes(elementRef, "data", indent + 2, true, depth + 1));
             }
             else if (UnityEngineTypePredicates.IsUnityEngineObject(typeRef))
             {
@@ -280,7 +293,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio.AssetStudioUtility
                 nodes.Add(new TypeTreeNode(typeRef.Name, name, indent, align));
                 var typeDef = typeRef.Resolve();
                 var typeDefinitionConverter = new TypeDefinitionConverter(typeDef, Helper, indent + 1);
-                nodes.AddRange(typeDefinitionConverter.ConvertToTypeTreeNodes());
+                nodes.AddRange(typeDefinitionConverter.ConvertToTypeTreeNodes(depth + 1));
             }
 
             return nodes;

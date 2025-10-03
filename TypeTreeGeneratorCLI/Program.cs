@@ -1,7 +1,9 @@
-﻿using System.CommandLine;
+﻿using AssetsTools.NET;
+using System.CommandLine;
 using TypeTreeGeneratorAPI;
 using TypeTreeGeneratorAPI.TypeTreeGenerator;
-
+using System.Text.Json.Serialization;
+using System.Text.Json;
 class Program
 {
     static async Task<int> Main(string[] args)
@@ -15,7 +17,7 @@ class Program
         var backendOption = new Option<string>(
             aliases: ["--backend", "-b"],
             description: "The backend to use (AssetStudio, AssetsTools, AssetRipper)",
-            getDefaultValue: () => "AssetsTools"
+            getDefaultValue: () => "AssetStudio"
         );
 
 
@@ -34,14 +36,21 @@ class Program
             description: "The path to an il2cpp metadata file (global-metadata.dat)"
         );
 
+        var outputJsonFile = new Option<string?>(
+            aliases: ["--output", "-o"],
+            description: "The path to output the JSON file (if not specified, outputs to console)",
+            getDefaultValue: () => null
+        );
+
         var rootCommand = new RootCommand("TypeTreeGeneratorAPI");
         rootCommand.AddOption(unityVersionOption);
         rootCommand.AddOption(backendOption);
         rootCommand.AddOption(monoDirectoryOption);
         rootCommand.AddOption(il2cppAssemblyPathOption);
         rootCommand.AddOption(il2cppMetadataPathOption);
+        rootCommand.AddOption(outputJsonFile);
 
-        rootCommand.SetHandler((unityVersion, backend, monoDirectory, il2cppAssembly, il2CppMetadata) =>
+        rootCommand.SetHandler((unityVersion, backend, monoDirectory, il2cppAssembly, il2CppMetadata, outputJson) =>
         {
             var handle = new TypeTreeGeneratorHandle(backend, unityVersion);
             if (monoDirectory is not null)
@@ -58,18 +67,32 @@ class Program
                 var metadata = File.ReadAllBytes(il2CppMetadata);
                 handle.Instance.LoadIl2Cpp(assembly, metadata);
             }
-
-            foreach (var (assemblyName, fullName) in handle.Instance.GetMonoBehaviourDefinitions())
+            if (outputJson == null)
             {
-                var nodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName)!;
-                if (nodes == null || nodes.Count == 0)
-                    continue;
-                Console.WriteLine($"{assemblyName} -  {fullName}");
-                Console.WriteLine(nodes.Count);
-                Console.WriteLine(TypeTreeNodeSerializer.ToJson(nodes));
+                foreach (var (assemblyName, fullName) in handle.Instance.GetClassDefinitions())
+                {
+                    var nodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName)!;
+                    if (nodes == null || nodes.Count == 0)
+                        continue;                    
+                    Console.WriteLine($"{assemblyName} -  {fullName}");
+                    Console.WriteLine(nodes.Count);
+                    Console.WriteLine(TypeTreeNodeSerializer.ToJson(nodes));                    
+                }
+            } else
+            {
+                Dictionary<string, List<TypeTreeGeneratorAPI.TypeTreeGenerator.TypeTreeNode>> nodes = new();
+                foreach (var (assemblyName, fullName) in handle.Instance.GetClassDefinitions())
+                {
+                    var treeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
+                    if (treeNodes == null || treeNodes.Count == 0)
+                        continue;
+                    nodes[fullName] = treeNodes;
+                }
+                File.WriteAllText(outputJson, TypeTreeNodeSerializer.ToJson(nodes));
+                Console.WriteLine($"Saved to {outputJson}");
             }
         },
-            unityVersionOption, backendOption, monoDirectoryOption, il2cppAssemblyPathOption, il2cppMetadataPathOption);
+            unityVersionOption, backendOption, monoDirectoryOption, il2cppAssemblyPathOption, il2cppMetadataPathOption, outputJsonFile);
 
         return await rootCommand.InvokeAsync(args);
     }

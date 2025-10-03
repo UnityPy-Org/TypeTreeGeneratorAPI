@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TypeTreeGeneratorCLI": {
+      "commandName": "Project",
+      "commandLineArgs": "-md C:\\Users\\mos9527\\UnityPyTypetreeCodegen\\.temp\\dummy --unity-version 2022.3.21f1 -o dump.json\r\n"
+    }
+  }
+}
