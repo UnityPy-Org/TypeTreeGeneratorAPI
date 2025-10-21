@@ -1,11 +1,30 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using TypeTreeGeneratorAPI.TypeTreeGenerator;
 
 namespace TypeTreeGeneratorAPI
 {
     public static class NativeAPI
     {
+        private static bool addMonoBehaviourRootNodes = true;
+
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_setAddMonoBehaviourRootNodes")]
+        public static int TypeTreeGenerator_Config_setAddMonoBehaviourRootNodes(byte value)
+        {
+            switch (value)
+            {
+                case 0:
+                    addMonoBehaviourRootNodes = false;
+                    break;
+                case 1:
+                    addMonoBehaviourRootNodes = true;
+                    break;
+                default:
+                    Console.WriteLine($"Expected True(1)/False(0), but got {value} for TypeTreeGenerator_setAddMonoBehaviourRootNodes");
+                    return -1;
+            }
+            return 0;
+        }
+
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_init")]
         public static IntPtr TypeTreeGenerator_init(IntPtr unityVersionPtr, IntPtr generatorName)
         {
@@ -130,13 +149,35 @@ namespace TypeTreeGeneratorAPI
             var json = string.Join(",", names.Select(name => $"\"{name}\""));
             return Marshal.StringToCoTaskMemUTF8($"[{json}]");
         }
-        
+
         public enum GenerateTreeNodesResult
         {
             Ok = 0,
             Error = -1,
             NotFound = -2,
         }
+
+        private static List<TypeTreeNode>? GenerateTypeTreeNodes(TypeTreeGeneratorHandle handle, string assemblyName, string fullName)
+        {
+            var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
+            if (addMonoBehaviourRootNodes && typeTreeNodes != null && fullName != "UnityEngine.MonoBehaviour")
+            {
+                var monoBehaviourRootNodes = handle.Instance.GetMonoBehaviourRootNodes();
+                if (typeTreeNodes.Count == 0)
+                {
+                    return monoBehaviourRootNodes;
+                }
+                if (typeTreeNodes[0].m_Level == 0)
+                {
+                    // move head to MonoBehaviour head
+                    monoBehaviourRootNodes[0] = typeTreeNodes[0];
+                    typeTreeNodes = typeTreeNodes.Slice(0, typeTreeNodes.Count - 1);
+                }
+                return monoBehaviourRootNodes.Concat(typeTreeNodes).ToList();
+            }
+            return typeTreeNodes;
+        }
+
 
         [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_generateTreeNodesJson")]
         public static GenerateTreeNodesResult TypeTreeGenerator_generateTreeNodesJson(IntPtr typeTreeGeneratorPtr, IntPtr assemblyNamePtr, IntPtr fullNamePtr, IntPtr jsonAddr)
@@ -151,8 +192,7 @@ namespace TypeTreeGeneratorAPI
             try
             {
                 var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
-
-                var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
+                var typeTreeNodes = GenerateTypeTreeNodes(handle, assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
                     Marshal.WriteIntPtr(jsonAddr, IntPtr.Zero);
@@ -182,7 +222,7 @@ namespace TypeTreeGeneratorAPI
             try
             {
                 var handle = (TypeTreeGeneratorHandle)GCHandle.FromIntPtr(typeTreeGeneratorPtr).Target!;
-                var typeTreeNodes = handle.Instance.GenerateTreeNodes(assemblyName, fullName);
+                var typeTreeNodes = GenerateTypeTreeNodes(handle, assemblyName, fullName);
                 if (typeTreeNodes == null)
                 {
                     Marshal.WriteIntPtr(arrAddrPtr, IntPtr.Zero);
@@ -218,8 +258,7 @@ namespace TypeTreeGeneratorAPI
             return 0;
         }
 
-        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getMonoBehaviorDefinitions")]
-        public static int TypeTreeGenerator_getMonoBehaviorDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        public static int _TypeTreeGenerator_getMonoBehaviourDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
         {
             if (typeTreeGeneratorPtr == IntPtr.Zero)
             {
@@ -248,14 +287,12 @@ namespace TypeTreeGeneratorAPI
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error geting mono behaviour definitions:\n{ex.Message}");
+                Console.WriteLine($"Error getting MonoBehaviour definitions:\n{ex.Message}");
                 return -1;
             }
         }
 
-
-        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_freeMonoBehaviorDefinitions")]
-        public static int TypeTreeGenerator_freeMonoBehaviorDefinitions(IntPtr arrAddr, int arrLength)
+        public static int _TypeTreeGenerator_freeMonoBehaviourDefinitions(IntPtr arrAddr, int arrLength)
         {
             if (arrAddr == IntPtr.Zero)
             {
@@ -271,6 +308,34 @@ namespace TypeTreeGeneratorAPI
             Marshal.FreeCoTaskMem(arrAddr);
             return 0;
         }
+
+        // alias for backward compatibility
+        // alias for backward compatibility
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getMonoBehaviourDefinitions")]
+        public static int TypeTreeGenerator_getMonoBehaviourDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        {
+            return _TypeTreeGenerator_getMonoBehaviourDefinitions(typeTreeGeneratorPtr, arrAddrPtr, arrLengthPtr);
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_freeMonoBehaviourDefinitions")]
+        public static int TypeTreeGenerator_freeMonoBehaviourDefinitions(IntPtr arrAddr, int arrLength)
+        {
+            return _TypeTreeGenerator_freeMonoBehaviourDefinitions(arrAddr, arrLength);
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_getMonoBehaviorDefinitions")]
+        public static int TypeTreeGenerator_getMonoBehaviorDefinitions(IntPtr typeTreeGeneratorPtr, IntPtr arrAddrPtr, IntPtr arrLengthPtr)
+        {
+            return _TypeTreeGenerator_getMonoBehaviourDefinitions(typeTreeGeneratorPtr, arrAddrPtr, arrLengthPtr);
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "TypeTreeGenerator_freeMonoBehaviorDefinitions")]
+        public static int TypeTreeGenerator_freeMonoBehaviorDefinitions(IntPtr arrAddr, int arrLength)
+        {
+            return _TypeTreeGenerator_freeMonoBehaviourDefinitions(arrAddr, arrLength);
+        }
+
+
 
         [UnmanagedCallersOnly(EntryPoint = "FreeCoTaskMem")]
         public static void FreeCoTaskMem(IntPtr ptr)

@@ -83,12 +83,12 @@ def init_dll(asm_path: Optional[str] = None):
         ctypes.POINTER(TypeTreeNodeNative),
         ctypes.c_int,
     ]
-    dll.TypeTreeGenerator_getMonoBehaviorDefinitions.argtypes = [
+    dll.TypeTreeGenerator_getMonoBehaviourDefinitions.argtypes = [
         ctypes.c_void_p,
         ctypes.POINTER(ctypes.POINTER(ctypes.c_char_p)),
         ctypes.POINTER(ctypes.c_int),
     ]
-    dll.TypeTreeGenerator_freeMonoBehaviorDefinitions.argtypes = [
+    dll.TypeTreeGenerator_freeMonoBehaviourDefinitions.argtypes = [
         ctypes.POINTER(ctypes.c_char_p),
         ctypes.c_int,
     ]
@@ -97,8 +97,11 @@ def init_dll(asm_path: Optional[str] = None):
 
     dll.TypeTreeGenerator_del.argtypes = [ctypes.c_void_p]
     dll.FreeCoTaskMem.argtypes = [ctypes.c_void_p]
-    DLL = dll  # type: ignore
 
+    dll.TypeTreeGenerator_setAddMonoBehaviourRootNodes.argtypes = [ctypes.c_void_p, ctypes.c_ubyte]
+    dll.TypeTreeGenerator_setAddMonoBehaviourRootNodes.restype = ctypes.c_int
+
+    DLL = dll  # type: ignore
 
 class TypeTreeGenerator:
     ptr = ctypes.c_void_p
@@ -163,18 +166,22 @@ class TypeTreeGenerator:
         DLL.TypeTreeGenerator_freeTreeNodesRaw(nodes_ptr, nodes_count)
         return nodes
 
-    def get_monobehavior_definitions(self) -> List[Tuple[str, str]]:
+    def get_monobehaviour_definitions(self) -> List[Tuple[str, str]]:
         names_ptr = ctypes.POINTER(ctypes.c_char_p)()
         names_cnt = ctypes.c_int()
-        assert not DLL.TypeTreeGenerator_getMonoBehaviorDefinitions(
+        assert not DLL.TypeTreeGenerator_getMonoBehaviourDefinitions(
             self.ptr,
             ctypes.byref(names_ptr),
             ctypes.byref(names_cnt),
         ), "failed to get module exports"
-        ptr_array = ctypes.cast(names_ptr, ctypes.POINTER(ctypes.c_char_p * names_cnt.value))
+        ptr_array = ctypes.cast(names_ptr, ctypes.POINTER(ctypes.c_char_p * (names_cnt.value*2)))
         names = [name.decode("utf-8") for name in ptr_array.contents]
         DLL.TypeTreeGenerator_freeMonoBehaviorDefinitions(names_ptr, names_cnt)
         return [(module, fullname) for module, fullname in zip(names[::2], names[1::2])]
+
+    def get_monobehavior_definitions(self) -> List[Tuple[str, str]]:
+        # alias for backward compatibility
+        return self.get_monobehaviour_definitions()
 
     def get_loaded_dll_names(self) -> List[str]:
         names_ptr = DLL.TypeTreeGenerator_getLoadedDLLNames(self.ptr)
@@ -187,6 +194,12 @@ class TypeTreeGenerator:
         names = json.loads(names_ptr_c.value)
         DLL.FreeCoTaskMem(names_ptr)
         return names
+
+    def set_add_mono_behaviour_root_nodes(self, enable: bool):
+        if hasattr(DLL, "TypeTreeGenerator_setAddMonoBehaviourRootNodes"):
+            DLL.TypeTreeGenerator_setAddMonoBehaviourRootNodes(self.ptr, int(enable))
+        else:
+            raise Exception("setAddMonoBehaviourRootNodes is not supported in this version of TypeTreeGeneratorAPI")
 
 
 __all__ = ["TypeTreeGenerator", "TypeTreeNode", "TypeTreeNodeNative", "TypeTreeBackend"]
