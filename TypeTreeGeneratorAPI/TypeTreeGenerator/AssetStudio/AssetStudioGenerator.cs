@@ -49,7 +49,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
         public override List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName)
         {
             var assemblyNameNormalized = assemblyName.EndsWith(".dll") ? assemblyName : $"{assemblyName}.dll";
-            
+
             var typeDef = GetTypeDefinition(assemblyNameNormalized, fullName);
             if (typeDef != null)
             {
@@ -83,7 +83,9 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetStudio
         private List<TypeTreeNode> GenerateTreeNodes(TypeDefinition typeDef)
         {
             var converter = new TypeDefinitionConverter(typeDef, serializedTypeHelper, 1);
-            return converter.ConvertToTypeTreeNodes();
+            var nodes = converter.ConvertToTypeTreeNodes();
+            nodes.Insert(0, new TypeTreeNode(typeDef.Name, "Base", 0, false));
+            return nodes;
         }
 
         private TypeDefinition? GetTypeDefinition(string assemblyName, string fullName)
