@@ -55,7 +55,8 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator.AssetRipper
                     {
                         if (type.IsClass && type.BaseType?.FullName == "UnityEngine.MonoBehaviour")
                         {
-                            monoBehaviourDefinitions.Add((assembly.Name, type.FullName));
+                            // add .dll for consistency with other generators
+                            monoBehaviourDefinitions.Add(($"{assembly.Name}.dll", type.FullName));
                         }
                     }
                 }
