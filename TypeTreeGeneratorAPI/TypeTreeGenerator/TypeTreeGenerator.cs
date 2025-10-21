@@ -14,6 +14,23 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
             unityVersion = UnityVersion.Parse(unityVersionString);
         }
 
+        public List<TypeTreeNode> GetMonoBehaviourRootNodes()
+        {
+            var pathIdType = (unityVersion.Major >= 5) ? "SInt64" : "int";
+
+            return [
+                new TypeTreeNode("MonoBehaviour", "Base", 0, false),
+                new TypeTreeNode("PPtr<GameObject>", "m_GameObject", 1, true),
+                new TypeTreeNode("int", "m_FileID", 2, false),
+                new TypeTreeNode(pathIdType, "m_PathID", 2, false),
+                new TypeTreeNode("UInt8", "m_Enabled", 1, false),
+                new TypeTreeNode("PPtr<MonoScript>", "m_Script", 1, true), // PPtr
+                new TypeTreeNode("int", "m_FileID", 2, false),
+                new TypeTreeNode(pathIdType, "m_PathID", 2, false),
+                new TypeTreeNode("String", "m_Name", 1, true)
+            ];
+        }
+
         abstract public List<(string, string)> GetMonoBehaviourDefinitions();
         abstract public List<TypeTreeNode>? GenerateTreeNodes(string assemblyName, string fullName);
 
@@ -28,7 +45,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
                 LoadDll(dllStream);
             }
         }
-        
+
 #if ENABLE_IL2CPP
         public virtual void LoadIl2Cpp(byte[] assemblyData, byte[] metadataData)
         {
