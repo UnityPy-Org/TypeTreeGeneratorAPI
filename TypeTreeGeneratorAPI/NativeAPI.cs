@@ -36,7 +36,7 @@ namespace TypeTreeGeneratorAPI
             }
             try
             {
-                var handle = new TypeTreeGeneratorHandle((generatorNameStr != null) ? generatorNameStr : "AssetStudio", unityVersion);
+                var handle = new TypeTreeGeneratorHandle((generatorNameStr != null) ? generatorNameStr : "AssetsTools", unityVersion);
                 return GCHandle.ToIntPtr(GCHandle.Alloc(handle));
             }
             catch (Exception ex)

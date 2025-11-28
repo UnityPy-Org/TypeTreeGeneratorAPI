@@ -109,7 +109,7 @@ class TypeTreeGenerator:
     def __init__(
         self,
         unity_version: str,
-        generator: TypeTreeBackend = "AssetStudio",
+        generator: TypeTreeBackend = "AssetsTools",
         asm_path: Optional[str] = None,
     ):
         init_dll(asm_path)
