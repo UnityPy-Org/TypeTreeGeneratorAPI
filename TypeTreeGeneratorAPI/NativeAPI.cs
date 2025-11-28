@@ -171,7 +171,8 @@ namespace TypeTreeGeneratorAPI
                 {
                     // move head to MonoBehaviour head
                     monoBehaviourRootNodes[0] = typeTreeNodes[0];
-                    typeTreeNodes = typeTreeNodes.Slice(0, typeTreeNodes.Count - 1);
+                    // and remove original head
+                    typeTreeNodes.RemoveAt(0);
                 }
                 return monoBehaviourRootNodes.Concat(typeTreeNodes).ToList();
             }
