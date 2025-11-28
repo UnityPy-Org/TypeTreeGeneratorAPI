@@ -27,7 +27,7 @@ namespace TypeTreeGeneratorAPI.TypeTreeGenerator
                 new TypeTreeNode("PPtr<MonoScript>", "m_Script", 1, true), // PPtr
                 new TypeTreeNode("int", "m_FileID", 2, false),
                 new TypeTreeNode(pathIdType, "m_PathID", 2, false),
-                new TypeTreeNode("String", "m_Name", 1, true)
+                new TypeTreeNode("string", "m_Name", 1, true)
             ];
         }
 
